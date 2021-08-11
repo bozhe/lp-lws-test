@@ -7,7 +7,7 @@ function displayTitle(name) {
 
 function createMenu() {
   [
-    { name: 'DIRECT IVR OPT', section: 'direct-ivr-agent-opt' },
+    { name: 'DIRECT IVR SDL', section: 'ewt-test' },
     // { name: 'DEV Home Page', section: 'site-gs-dev-homepage' },
     // { name: 'DEV Kitchen', section: 'site-gs-dev-kitchen' },
     // { name: 'STG Home Page', section: 'site-gs-stg-homepage' },
