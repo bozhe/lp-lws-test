@@ -7,11 +7,10 @@ function displayTitle(name) {
 
 function createMenu() {
   [
-    { name: 'DIRECT IVR SDL', section: 'ewt-test' },
-    // { name: 'DEV Home Page', section: 'site-gs-dev-homepage' },
-    // { name: 'DEV Kitchen', section: 'site-gs-dev-kitchen' },
-    // { name: 'STG Home Page', section: 'site-gs-stg-homepage' },
-    // { name: 'STG Kitchen', section: 'site-gs-stg-kitchen' },
+    { name: 'DEV Home Page', section: 'site-gs-dev-homepage' },
+    { name: 'DEV Kitchen', section: 'site-gs-dev-kitchen' },
+    { name: 'STG Home Page', section: 'site-gs-stg-homepage' },
+    { name: 'STG Kitchen', section: 'site-gs-stg-kitchen' },
   ].forEach(function(cat) {
     var aTag = document.createElement('a');
     aTag.setAttribute('href', '?section=' + cat.section);
