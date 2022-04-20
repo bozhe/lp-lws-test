@@ -13,6 +13,8 @@ function createMenu() {
     { name: 'STG Kitchen', section: 'site-gs-stg-kitchen' },
     { name: 'DEV SMS Home', section: 'site-gs-dev-sms-homepage' },
     { name: 'STG SMS Home', section: 'site-gs-stg-sms-homepage' },
+    { name: 'STG ABC Pro-Loyalty', section: 'abc-gs-stg-pro-loyalty' },
+    { name: 'STG SMS Pro-Loyalty', section: 'sms-gs-stg-pro-loyalty' },
   ].forEach(function(cat) {
     var aTag = document.createElement('a');
     aTag.setAttribute('href', '?section=' + cat.section);
