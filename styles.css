@@ -34,3 +34,87 @@ body {
   background-color: #043eaa;
   color: white;
 }
+
+.table {
+  display: table;
+}
+
+.row {
+  display: table-row;
+}
+
+.cell {
+  display: table-cell;
+  padding: 2px;
+}
+.sde-input-title {
+  width: 1px;
+  white-space: nowrap;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+.sde-input-cell {
+  width: 100%;
+}
+
+.sde-container {
+  width: 500px;
+}
+
+.sde-container-form {
+  background:rgb(200, 200, 255);
+}
+
+.textInput {
+  width: 100%;
+  height: 25px;
+}
+
+.sde-set-button-cell {
+  display: inline-block;
+  width: 100%;
+}
+
+.sde-set-button {
+  min-width: 150px;
+}
+
+.sde-copy-button {
+  min-width: 50px;
+}
+
+.sde-button {
+  height: 30;
+  margin: 2;
+  float: right;
+  border-radius: 4px;
+  border: 1px solid #6890fe;
+  background: rgb(171 193 253);
+  color: black;
+}
+.sde-button:hover {
+  background: rgb(4 62 170);
+  color: white;
+}
+.sde-button:focus {
+  background: rgb(4 62 170);
+  color: white;
+}
+.sde-button:active {
+  background: rgb(1, 36, 101);
+  color: white;
+}
+
+.input-validation-error {
+  background:#fee;
+  border: 1px solid #f55;
+}
+.sde-clipboard {
+  display: none;
+}
+
+.sde-table-title {
+  background: #043eaa;
+  color: white;
+  text-align: center;
+}
