@@ -59,6 +59,8 @@ body {
 
 .sde-container {
   width: 500px;
+  margin: 10px;
+  border: 2px solid #043eaa;
 }
 
 .sde-container-form {
@@ -117,4 +119,61 @@ body {
   background: #043eaa;
   color: white;
   text-align: center;
+}
+
+/* -- POP UP --
+#open-popup{
+  width: 300px;
+  height: 50px;
+  border: none;
+  padding: 15px 32px;
+  font-size: 16px;
+  background: rgb(0,140,186);
+  color: white;
+  cursor:pointer;
+  transition-duration: 0.4s;
+}
+
+#open-popup:hover {
+  background-color:rgba(0,140,186,0.9); 
+} */
+ 
+ /* ========    popup  ========= */
+.popup-container {
+  display: none; 
+  background: rgba(0, 0, 0, 0.25);
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  opacity:0;
+  transition: opacity 0.3s;
+}
+
+.popup-container .popup {
+  width: 400px;
+  height: 100px;
+  border: 5px solid #3b6e4073;
+  border-radius: 15px;
+  background: #55975b66;
+  position: relative;
+  left: calc(50% - 200px);
+  top: calc(50% - 50px);
+  text-align: center;
+  line-height: 100px;
+  font-size: 28px;
+  color: #3b6e40;
+}
+ 
+.popup-container .popup-saved {
+  border: 5px solid #3b6e4073;
+  background: #55975b66;
+  color: #3b6e40;
+}
+ 
+.popup-container .popup-copied {
+  border: 5px solid #3b3f6e73;
+  background: #59559766;
+  color: #3c3b6e;
 }
