@@ -115,7 +115,7 @@ function createSDESection() {
   sde.appendChild(tbl);
 
   const titleRow = window.document.createElement('div');
-  titleRow.classList.add('row', 'sde-container-row');
+  titleRow.classList.add('row', 'sde-container-row', 'sde-table-title');
   titleRow.innerText = 'SDE';
   tbl.appendChild(titleRow);
 
@@ -126,11 +126,6 @@ function createSDESection() {
   const containerCell = window.document.createElement('div');
   containerCell.classList.add('cell', 'sde-container-form');
   inputsRow.appendChild(containerCell);
-
-  // const sdeForm = window.document.createElement('div');
-  // sdeForm.classList.add('table');
-  // sdeForm.id = 'sde-form';
-  // containerCell.appendChild(sdeForm);
 
   createSDEInputTable(containerCell);
 }
@@ -199,6 +194,7 @@ function sendSDEs() {
         }
       }]
     });
+    showSaved();
   }
 }
 
@@ -227,6 +223,21 @@ function copySDEsCode(textarea) {
     `  });`,
     `})();`].join('\n');
   textarea.select();
-  // textarea.setSelectionRange(0, 99999);
   navigator.clipboard.writeText(value);
+  if (valid) showCopied();
+}
+
+function faceInOut(popup) {
+  popup.style.display = 'block';
+  setTimeout(() => { popup.style.opacity = 1; }, 100);
+  setTimeout(() => { popup.style.opacity = 0; }, 900);
+  setTimeout(() => { popup.style.display = 'none' }, 1200);
+}
+
+function showSaved() {
+  faceInOut(document.getElementById('popup-container-saved'));
+}
+
+function showCopied() {
+  faceInOut(document.getElementById('popup-container-copied'));
 }
