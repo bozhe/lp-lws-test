@@ -96,8 +96,8 @@ function createSDECopyButtonRow(parent) {
   parent.appendChild(button);
 }
 
-function createSDEInputTable(parent) {
-  // const parent = window.document.getElementById('sde-container-form');
+function createSDEInputTable() {
+  const parent = window.document.getElementById('sde-container-form');
   const table = window.document.createElement('div');
   table.id = 'sde-form'
   table.classList.add('table');
@@ -105,29 +105,6 @@ function createSDEInputTable(parent) {
 
   attributes.forEach(a => createSDEInputRow(a, table));
   createSDEButtons(table);
-}
-
-function createSDESection() {
-  const sde = window.document.getElementById('sde');
-  const tbl = window.document.createElement('div');
-  tbl.classList.add('table', 'sde-container');
-  tbl.id = 'sde-container';
-  sde.appendChild(tbl);
-
-  const titleRow = window.document.createElement('div');
-  titleRow.classList.add('row', 'sde-container-row', 'sde-table-title');
-  titleRow.innerText = 'SDE';
-  tbl.appendChild(titleRow);
-
-  const inputsRow = window.document.createElement('div');
-  inputsRow.classList.add('row', 'sde-container-row');
-  tbl.appendChild(inputsRow);
-
-  const containerCell = window.document.createElement('div');
-  containerCell.classList.add('cell', 'sde-container-form');
-  inputsRow.appendChild(containerCell);
-
-  createSDEInputTable(containerCell);
 }
 
 function validateInputs() {
@@ -223,6 +200,7 @@ function copySDEsCode(textarea) {
     `  });`,
     `})();`].join('\n');
   textarea.select();
+  // textarea.setSelectionRange(0, 99999);
   navigator.clipboard.writeText(value);
   if (valid) showCopied();
 }
