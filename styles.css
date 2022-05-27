@@ -1,40 +1,67 @@
+
 body {
+  background-color: #c2daf0;
   margin: 0;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Source Sans Pro', Arial, Helvetica, sans-serif;
 }
 
 .top-title {
   overflow: hidden;
-  background-color: rgb(171, 193, 253);
+  background-color: #85b8e2;
+  color: #1b456b;
   font-size: 24px;
   text-align: center;
-  padding: 14px 16px;
+  padding: 6px;
 }
 
 .top-menu {
-  overflow: hidden;
-  background-color: rgb(103, 144, 255);
+  background-color: #153755;
 }
 
-.top-menu a {
-  float: left;
-  color: white;
-  text-align: center;
-  padding: 14px 16px;
+.top-menu-group {
+  position: relative;
+  display: inline-block;
+}
+
+.top-menu-group-button {
+  min-width: 160px;
+  background-color: #153755;
+  color: #c2daf0;
+  padding: 10px;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+}
+
+.top-menu-group-content {
+  display: none;
+  position: absolute;
+  background-color: #85b8e2;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.5);
+  z-index: 1;
+}
+
+.top-menu-group-content a {
+  color: black;
+  padding: 12px 16px;
   text-decoration: none;
-  font-size: 17px;
+  display: block;
 }
 
-.top-menu a:hover {
-  background-color: #002066;
-  color: white;
+.top-menu-group-content a:hover {
+  background-color: #4a92d3
 }
 
-.top-menu a.active {
-  background-color: #043eaa;
-  color: white;
+.top-menu-group:hover .top-menu-group-content {
+  display: block;
 }
 
+.top-menu-group:hover .top-menu-group-button {
+  background-color: #102840;
+}
+
+/* === SDE form === */
 .table {
   display: table;
 }
@@ -47,9 +74,12 @@ body {
   display: table-cell;
   padding: 2px;
 }
+
 .sde-input-title {
   width: 1px;
   white-space: nowrap;
+  color: #1b456b;
+  font-weight: bold;
   font-family: 'Courier New', Courier, monospace;
 }
 
@@ -60,11 +90,11 @@ body {
 .sde-container {
   width: 500px;
   margin: 10px;
-  border: 2px solid #043eaa;
+  border: 2px solid #1b456b;
 }
 
 .sde-container-form {
-  background:rgb(200, 200, 255);
+  background:#85b8e2;
 }
 
 .textInput {
@@ -90,20 +120,20 @@ body {
   margin: 2;
   float: right;
   border-radius: 4px;
-  border: 1px solid #6890fe;
-  background: rgb(171 193 253);
-  color: black;
+  border: 1px solid #102840;
+  background: #296ca7;
+  color: #ecf4fa;
 }
 .sde-button:hover {
-  background: rgb(4 62 170);
-  color: white;
+  background: #1b456b;
+  color: #ecf4fa;
 }
 .sde-button:focus {
-  background: rgb(4 62 170);
-  color: white;
+  background: #1b456b;
+  color: #ecf4fa;
 }
 .sde-button:active {
-  background: rgb(1, 36, 101);
+  background: #102840;
   color: white;
 }
 
@@ -116,27 +146,10 @@ body {
 }
 
 .sde-table-title {
-  background: #043eaa;
+  background: #1b456b;
   color: white;
   text-align: center;
 }
-
-/* -- POP UP --
-#open-popup{
-  width: 300px;
-  height: 50px;
-  border: none;
-  padding: 15px 32px;
-  font-size: 16px;
-  background: rgb(0,140,186);
-  color: white;
-  cursor:pointer;
-  transition-duration: 0.4s;
-}
-
-#open-popup:hover {
-  background-color:rgba(0,140,186,0.9); 
-} */
  
  /* ========    popup  ========= */
 .popup-container {
@@ -154,26 +167,14 @@ body {
 .popup-container .popup {
   width: 400px;
   height: 100px;
-  border: 5px solid #3b6e4073;
   border-radius: 15px;
-  background: #55975b66;
   position: relative;
   left: calc(50% - 200px);
   top: calc(50% - 50px);
   text-align: center;
   line-height: 100px;
   font-size: 28px;
-  color: #3b6e40;
-}
- 
-.popup-container .popup-saved {
-  border: 5px solid #3b6e4073;
-  background: #55975b66;
-  color: #3b6e40;
-}
- 
-.popup-container .popup-copied {
-  border: 5px solid #3b3f6e73;
-  background: #59559766;
-  color: #3c3b6e;
+  border: 5px solid #102840;
+  background: #153755;
+  color: #ecf4fa;
 }
