@@ -5,27 +5,39 @@ function displayTitle(name) {
   document.getElementById('cat-title').appendChild(catTitle);
 }
 
-function createMenu() {
-  [
-    { name: 'DEV Home Page', section: 'site-gs-dev-homepage' },
-    { name: 'DEV Kitchen', section: 'site-gs-dev-kitchen' },
-    { name: 'STG Home Page', section: 'site-gs-stg-homepage' },
-    { name: 'STG Kitchen', section: 'site-gs-stg-kitchen' },
-    { name: 'DEV SMS Home', section: 'site-gs-dev-sms-homepage' },
-    { name: 'STG SMS Home', section: 'site-gs-stg-sms-homepage' },
-    { name: 'STG ABC Pro-Loyalty', section: 'abc-gs-stg-pro-loyalty' },
-    { name: 'STG SMS Pro-Loyalty', section: 'sms-gs-stg-pro-loyalty' },
-    { name: 'DEV PRICE MATCH', section: 'site-gs-dev-price-promise' },
-  ].forEach(function(cat) {
-    var aTag = document.createElement('a');
-    aTag.setAttribute('href', '?section=' + cat.section);
-    aTag.setAttribute('id', 'category-btn-' + cat.section);
-    if (section === cat.section) {
-      aTag.classList.add('active');
-      displayTitle(cat.name);
-    }
-    aTag.innerText = cat.name;
-    document.getElementById('top-menu').appendChild(aTag)
-  });
-};
+function createGroup(parent, name) {
+  const group = document.createElement('div');
+  const button = document.createElement('button');
+  const content = document.createElement('div');
 
+  group.classList.add('top-menu-group');
+  button.classList.add('top-menu-group-button');
+  content.classList.add('top-menu-group-content');
+
+  button.innerText = name;
+  
+  parent.appendChild(group);
+  group.appendChild(button);
+  group.appendChild(content);
+  
+  return content;
+}
+
+function createGroupItem(parent, name, section) {
+  const element = document.createElement('a');
+  element.setAttribute('href', '?section=' + section);
+  element.setAttribute('id', 'category-btn-' + section);
+  element.classList.add('top-menu-item');
+  element.innerText = name;
+  parent.appendChild(element);
+}
+
+function createMenu() {
+  const topMenu = document.getElementById('top-menu');
+  categories.forEach(e => {
+    if (e.items && e.items.length) {
+      const group = createGroup(topMenu, e.name);
+      e.items.forEach(ei => createGroupItem(group, ei.name, ei.section))
+    }
+  })
+};
