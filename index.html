@@ -1,25 +1,48 @@
 <html>
   <head>
-    <script src='sections.js'></script>
     <script src='chat.js'></script>
+    <script src='categories.js'></script>
     <script src='buttons.js'></script>
     <script src='sde_elements_constructor.js'></script>
     <link rel="stylesheet" href="styles.css">
   </head>
   <body>
+    <div id='top-title' class='top-title'></div>
     <div id='top-menu' class='top-menu'></div>
-    <div id='cat-title'></div>
+
     <div id='sde'>
+
+      <div id="sde-container" class="table sde-container">
+      
+        <div id="sde-container-row" class="row">
+          <div id="sde-table-title" class="cell sde-table-title">SDE</div>
+        </div>
+        
+        <div id="sde-container-row" class="row">
+          <div id="sde-container-form" class="cell sde-container-form">
+            <div id="sde-form" class="table"></div>
+          </div>
+        </div>
+      </div>
+      
       <div id="popup-container-saved" class="popup-container">
-        <div id="pupop" class="popup popup-saved">✅ SAVED</div>
+        <div id="pupop" class="popup popup-saved">SAVED</div>
       </div>
       <div id="popup-container-copied" class="popup-container">
-        <div id="pupop" class="popup popup-copied">✅ COPIED</div>
+        <div id="pupop" class="popup popup-copied">COPIED</div>
       </div>
     </div>
     <div id='liveperson-persist-button'></div>
-    <script>createMenu();</script>
+    <script>
+      // Init titlw
+      const currentCategoryName = categories.map(c => c.items.find(i => i.section === section)).find(i => !!i).name;
+      const titleElement = window.document.getElementById('top-title');
+      titleElement.innerText = currentCategoryName || '';
+      // Init Menu
+      createMenu();
+      // Create SDE inputs
+      createSDEInputTable();
+    </script>
     <script>createSDESection();</script>
   </body>     
 </html>
-
