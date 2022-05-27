@@ -15,6 +15,7 @@ function createMenu() {
     { name: 'STG SMS Home', section: 'site-gs-stg-sms-homepage' },
     { name: 'STG ABC Pro-Loyalty', section: 'abc-gs-stg-pro-loyalty' },
     { name: 'STG SMS Pro-Loyalty', section: 'sms-gs-stg-pro-loyalty' },
+    { name: 'DEV PRICE MATCH', section: 'site-gs-dev-price-promise' },
   ].forEach(function(cat) {
     var aTag = document.createElement('a');
     aTag.setAttribute('href', '?section=' + cat.section);
