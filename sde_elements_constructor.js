@@ -9,6 +9,7 @@ const validators = {
   any: createValidator('', () => true),
   numberOrEmpty: createValidator('The value has to be either number or empty', v => /^\d+$/.test(v) || v === ''),
   zipOrEmpty: createValidator('The value has to be either 5 digit zip or empty', v => /^\d{5}$/.test(v) || v === ''),
+  ctype: createValidator('The value has to be uppercase abbreviation', v => /^[A-Z]+$/.test(v) || v === ''),
 }
 
 const attributes = [
@@ -19,6 +20,7 @@ const attributes = [
   { id: 'zip', title: 'ZIP Code', validator: validators.zipOrEmpty },
   { id: 'storeId', title: 'Store ID', validator: validators.numberOrEmpty },
   { id: 'storeName', title: 'Store Name', validator: validators.any },
+  { id: 'ctype', title: 'Cust. Type', validator: validators.ctype },
 ];
 
 function createSDEInputRow(attrItem, parent) {
@@ -145,12 +147,15 @@ function readAndConvertSDEs() {
       id: getInputValue('storeId'),
       title: getInputValue('storeName'),
       zip: getInputValue('zip'),
+    },
+    user: {
+      ctype: getInputValue('ctype'),
     }
   }
 }
 
 function sendSDEs() {
-  const { valid, product, store } = readAndConvertSDEs();
+  const { valid, product, store, user } = readAndConvertSDEs();
   if (valid) {
     lpTag.sdes.reset();
     lpTag.sdes.init();
@@ -159,6 +164,7 @@ function sendSDEs() {
       info: {
         socialId: store.zip,
         imei: product.onmiItemId, 
+        ctype: user.ctype,
       }
     });
     lpTag.sdes.send({
@@ -176,7 +182,7 @@ function sendSDEs() {
 }
 
 function copySDEsCode(textarea) {
-  const { valid, product, store } = readAndConvertSDEs();
+  const { valid, product, store, user } = readAndConvertSDEs();
   const value = !valid ? '' : [
     `(() => {`,
     `  lpTag.sdes.reset();`,
@@ -186,6 +192,7 @@ function copySDEsCode(textarea) {
     `    info: {`,
     `      socialId: "${store.zip}",`,
     `      imei: "${product.onmiItemId}", `,
+    `      ctype: "${user.ctype}", `,
     `    }`,
     `  });`,
     `  lpTag.sdes.send({`,
