@@ -21,6 +21,7 @@ const attributes = [
   { id: 'storeId', title: 'Store ID', validator: validators.numberOrEmpty },
   { id: 'storeName', title: 'Store Name', validator: validators.any },
   { id: 'ctype', title: 'Cust. Type', validator: validators.ctype },
+  { id: 'email', title: 'E-mail', validator: validators.any },
 ];
 
 function createSDEInputRow(attrItem, parent) {
@@ -150,6 +151,7 @@ function readAndConvertSDEs() {
     },
     user: {
       ctype: getInputValue('ctype'),
+      email: getInputValue('email'),
     }
   }
 }
@@ -159,6 +161,20 @@ function sendSDEs() {
   if (valid) {
     lpTag.sdes.reset();
     lpTag.sdes.init();
+    lpTag.sdes.send({
+      type: 'personal',
+      personal: {
+        // firstname:"-",
+        // lastname:"-",
+        contacts:[
+          {
+            // phone:"-",
+            email: user.email
+          }
+        ],
+        // company:"-"
+      }
+    });
     lpTag.sdes.send({
       type: 'ctmrinfo', // MANDATORY
       info: {
@@ -187,6 +203,14 @@ function copySDEsCode(textarea) {
     `(() => {`,
     `  lpTag.sdes.reset();`,
     `  lpTag.sdes.init();`,
+    `  lpTag.sdes.send({`,
+    `    type: 'personal',`,
+    `    personal: {`,
+    `      contacts: [{`,
+    `        email: "${user.email}", `,
+    `      }], `,
+    `    }`,
+    `  });`,
     `  lpTag.sdes.send({`,
     `    type: 'ctmrinfo', // MANDATORY`,
     `    info: {`,
