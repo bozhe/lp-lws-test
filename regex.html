@@ -1,0 +1,30 @@
+<html>
+  <head>
+    <script src='regex-gen.js'></script>
+    <link rel="stylesheet" href="styles.css">
+    <title>Regex generator for custom rules</title>
+  </head>
+  <body>
+    <div id='top-title' class='top-title'>Regex Generator</div>
+    <div id="options">
+      <div id="options-container" class="regex-options-container">
+        <div class="row regex-options-row">
+          <div class="cell">Options:</div>
+          <div class="cell">Regexes:</div>
+        </div>
+        <div class="row regex-options-row">
+          <div class="cell">
+            <textarea id="regex-options-text" name="options" cols="40" rows="10" placeholder="A) Option 1&#10;B) Option 2&#10;C) Option 3&#10;&#10;or&#10;&#10;Option 1&#10;Option 2&#10;Option 3"></textarea>
+          </div>
+          <div id="regex-options-results" class="cell regex-options-results"></div>
+        </div>
+        <div class="row regex-options-row">
+          <div class="cell">
+            <button onclick="onGenerateClick();">Generate</button>
+          </div>
+          <div class="cell"></div>
+        </div>
+      </div>
+    </div>
+  </body>     
+</html>

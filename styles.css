@@ -178,3 +178,33 @@ body {
   background: #153755;
   color: #ecf4fa;
 }
+
+ /* ========    popup  ========= */
+.regex-options-container {
+  margin: 10px;
+  display: inline-block;
+}
+
+.regex-options-results {
+  display: inline-block;
+}
+
+.code {
+  width: 1px;
+  white-space: nowrap;
+  border-bottom: 1px solid #1b456b;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+.copy-icon {
+  width: 12px;
+  filter: invert(23%) sepia(6%) saturate(6703%) hue-rotate(169deg) brightness(96%) contrast(93%);
+}
+.copy-icon:hover {
+  filter: invert(68%) sepia(56%) saturate(295%) hue-rotate(169deg) brightness(95%) contrast(86%);
+  cursor: pointer;
+}
+.copy-icon:active {
+  filter: invert(0%) sepia(11%) saturate(7455%) hue-rotate(332deg) brightness(90%) contrast(96%);
+  cursor: pointer;
+}
