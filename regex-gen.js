@@ -2,12 +2,14 @@ function onGenerateClick() {
   const objRegex = /\{.*title:\s*['"`](.*)['"`]\s*(,\s.*|\s*)\},?/;
   const strRegex = /^['"`](.*)['"`],?$/;
 
+  const notSurePattern = '(i\\s*([a\\W]{1}m\\s)?)?((not sure)|(do\\s*n*.t know))|idk';
   const yesPattern = '(yes|right|of course|by all means|sure|certainly|absolutely|indeed|agreed|aye|yeah|yah|yep|yup|okay|ok|okey-dokey|okey-doke|surely)(([\\s.,-]*)?(pls|please|th.*nk.*))?';
   const noPattern = '(absolut.*|total.*)?((no(t)?.*(way|right|really|entirely|exactly|thank.*)?|nah|nope|wrong|disagree|doubt.*))';
   const allSetPattern = '(i(\\s+am|.{0,1}m)\\s+)?(all\\s+)?(done|good|ok|set)';
   const chatPattern = '(chat|talk|speak|connect)\\s(with|to).*(associate|human|agent)';
   const menuPattern = '(main\\s+?)?menu';
 
+  const notSureRegex = /(not sure)|(do\s*n.t know)/i;
   const yesRegex = /(yes|right|of course|by all means|sure|certainly|absolutely|indeed|agreed|aye|yeah|yah|yep|yup|okay|ok|okey-dokey|okey-doke|surely)(([\s.,-]*)?(pls|please|th.*nk.*))?/i;
   const noRegex = /(absolut.*|total.*)?((no(t)?.*(way|right|really|entirely|exactly|thank.*)?|nah|nope|wrong|disagree|doubt.*))/i;
   const allSetRegex = /(i(\s+am|.{0,1}m)\s+)?(all\s+)?(done|good|ok|set)/i;
@@ -30,12 +32,13 @@ function onGenerateClick() {
     .filter(v => !!v)
     .map((opt, index) => {
       const char = 'abcdefghij'[index];
-      const optPattern = yesRegex.test(opt) ? yesPattern :
+      const optPattern = notSureRegex.test(opt) ? notSurePattern :
+        (yesRegex.test(opt) ? yesPattern :
         (noRegex.test(opt) ? noPattern : 
         (allSetRegex.test(opt) ? allSetPattern :
         (chatRegex.test(opt) ? chatPattern :
         (menuRegex.test(opt) ? menuPattern :
-        opt))));
+        opt)))));
       return `(?i)^([${char}${index+1}]\\W{0,3})?(${optPattern})?$`
     });
   createRegexLines(regexes);
