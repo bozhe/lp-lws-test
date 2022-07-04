@@ -2,13 +2,13 @@ function onGenerateClick() {
   const objRegex = /\{.*title:\s*['"`](.*)['"`]\s*(,\s.*|\s*)\},?/;
   const strRegex = /^['"`](.*)['"`],?$/;
 
-  const yesPattern = '(yes|right|of course|by all means|sure|certainly|absolutely|indeed|agreed|aye|yeah|yah|yep|yup|okay|ok|okey-dokey|okey-doke|surely)(([\\s.,-]*)?th.*nk.*)?';
+  const yesPattern = '(yes|right|of course|by all means|sure|certainly|absolutely|indeed|agreed|aye|yeah|yah|yep|yup|okay|ok|okey-dokey|okey-doke|surely)(([\\s.,-]*)?(pls|please|th.*nk.*))?';
   const noPattern = '(absolut.*|total.*)?((no(t)?.*(way|right|really|entirely|exactly|thank.*)?|nah|nope|wrong|disagree|doubt.*))';
   const allSetPattern = '(i(\\s+am|.{0,1}m)\\s+)?(all\\s+)?(done|good|ok|set)';
   const chatPattern = '(chat|talk|speak|connect)\\s(with|to).*(associate|human|agent)';
   const menuPattern = '(main\\s+?)?menu';
 
-  const yesRegex = /(yes|right|of course|by all means|sure|certainly|absolutely|indeed|agreed|aye|yeah|yah|yep|yup|okay|ok|okey-dokey|okey-doke|surely)(([\s.,-]*)?th.*nk.*)?/i;
+  const yesRegex = /(yes|right|of course|by all means|sure|certainly|absolutely|indeed|agreed|aye|yeah|yah|yep|yup|okay|ok|okey-dokey|okey-doke|surely)(([\s.,-]*)?(pls|please|th.*nk.*))?/i;
   const noRegex = /(absolut.*|total.*)?((no(t)?.*(way|right|really|entirely|exactly|thank.*)?|nah|nope|wrong|disagree|doubt.*))/i;
   const allSetRegex = /(i(\s+am|.{0,1}m)\s+)?(all\s+)?(done|good|ok|set)/i;
   const chatRegex = /(chat|talk|speak|connect)\s(with|to).*(associate|human|agent)/i;
