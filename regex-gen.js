@@ -2,7 +2,7 @@ function onGenerateClick() {
   const objRegex = /\{.*title:\s*['"`](.*)['"`]\s*(,\s.*|\s*)\},?/;
   const strRegex = /^['"`](.*)['"`],?$/;
 
-  const notSurePattern = '(i\\s*([a\\W]{1}m\\s)?)?((not sure)|(do\\s*n*.t know))|idk';
+  const notSurePattern = '(.*((do\\s|can\\s)?not|(don|can)\\Wt)\\s+(know|remember|recall|sure))|idk';
   const yesPattern = '(yes|right|of course|by all means|sure|certainly|absolutely|indeed|agreed|aye|yeah|yah|yep|yup|okay|ok|okey-dokey|okey-doke|surely)(([\\s.,-]*)?(pls|please|th.*nk.*))?';
   const noPattern = '(absolut.*|total.*)?((no(t)?.*(way|right|really|entirely|exactly|thank.*)?|nah|nope|wrong|disagree|doubt.*))';
   const allSetPattern = '(i(\\s+am|.{0,1}m)\\s+)?(all\\s+)?(done|good|ok|set)';
