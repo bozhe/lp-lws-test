@@ -1,0 +1,49 @@
+<html>
+  <head>
+    <script src="js/messaging-window.min.js"></script>
+    <script src="js/json-pollock/dist/json-pollock.min.js"></script>
+    <script src="js/json-pollock/dist/json-pollock.global.min.js"></script>
+    <script src="js/chat-elements.js"></script>
+    <script src="js/commands.js"></script>
+    <script src="js/command-elements.js"></script>
+    <script src="js/chat-window-connector.js"></script>
+
+    <link rel="stylesheet" href="js/json-pollock/dist/json-pollock.min.css">
+    <link rel="stylesheet" href="main.css">
+  </head>
+  <body>
+    <div id="root">
+      <div class="table">
+        <div class="row">
+          
+            <div class="cell">
+              <div id="script-window-root">
+                <div id="script-window-header" class="window-header script-window-header">SCRIPT</div>
+                <div class="table">
+                  <div class="row">
+                    <div id="script-window-content" class="cell script-window-content"></div>
+                    <div id="script-window-tools" class="cell script-window-tools"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          
+            <div class="cell">
+              <div id="chat-window-root" class="chat-window-root">
+                <div id="chat-window-header" class="window-header chat-window-header">CHAT</div>
+                <div id="chat-window-content" class="chat-window-content">
+                </div>
+              </div>
+            </div>
+
+        </div>
+      </div>
+    </div>
+    <script>
+      window.onload = () => {
+        buildCommands();
+        buildSystemButtons();
+      }
+    </script>
+  </body>
+</html>
