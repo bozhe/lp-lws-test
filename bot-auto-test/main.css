@@ -113,21 +113,33 @@ body {
   margin: 2px 0px;
   text-align: center;
   border-radius: 5px;
+  cursor: pointer;
 }
 
-/* System buttons */
-.script-window-tool-system {
-  border: 2px solid #112740;
+.script-window-tool-btn:hover {
+  background: linear-gradient(rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.25));
+}
+
+.script-window-tool-btn:active {
+  background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5));
+}
+
+.script-window-buttons {
+  border: 1px solid #5a93bf;
   border-radius: 5px;
-  background-color: #afcbe1;
   padding: 2px;
+  margin-top: 4px;
+}
+/* System buttons */
+.script-window-buttons.system {
+  background-color: #afcbe1;
 }
 
 .script-window-tool-btn.run {
   background-color: green;
 }
 
-.script-window-tool-btn.clean {
+.script-window-tool-btn.clear {
   background-color: #ba6666;
 }
 

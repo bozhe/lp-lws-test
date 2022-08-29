@@ -1,6 +1,6 @@
 function buildCommands() {
   const scriptContainer = window.document.getElementById('script-window-content');
-  const toolContainer = window.document.getElementById('script-window-tools');
+  const toolContainer = window.document.getElementById('script-window-buttons-command');
   const commands = [
     new ResetCmd(scriptContainer, toolContainer),
     new SendCmd(scriptContainer, toolContainer),
@@ -13,11 +13,8 @@ function buildCommands() {
 }
 
 function buildSystemButtons() {
-  const toolContainer = window.document.getElementById('script-window-tools');
-  const systemContainer = window.document.createElement('div');
-  systemContainer.classList.add('script-window-tool-system');
-  toolContainer.appendChild(systemContainer);
-
+  const systemContainer = window.document.getElementById('script-window-buttons-system');
+  
   function createBtn(title, onClick) {
     const btn = window.document.createElement('div');
     btn.classList.add('script-window-tool-btn', title.toLowerCase());
@@ -27,8 +24,8 @@ function buildSystemButtons() {
   }
 
   createBtn('Run', () => { runCommands(); });
-  createBtn('Clean', () => { alert('TODO:') });
-  createBtn('Save', () => { alert('TODO:') });
+  createBtn('Clear', () => { clearCommands(); });
+  createBtn('Save', () => { saveToJson() });
   createBtn('Load', () => { alert('TODO:') });
   createBtn('Stop', () => { alert('TODO:') });
   
