@@ -64,6 +64,7 @@ function runNextStep() {
 	commandData.currentIndex += 1;
 	if (!item) return onCommandsFinished();
 	item.cmd.run(item, window.chat, (state) => {
+		applyProgressState(state);
 		if (state === 'next') {
 			runNextStep();
 		} else if (state === 'wait') {
@@ -76,10 +77,10 @@ function runNextStep() {
 }
 
 function onCommandsFinished() {
-	console.log(' -- DONE -- ', commandData.commands);
-	commandData.currentState = 'finished';
+	const state = 'finished'
+	applyProgressState(state);
+	commandData.currentState = state;
 }
-
 
 function runCommands() {
 	if (['finished', 'hold', 'failed'].includes(commandData.currentState)) {
@@ -88,4 +89,22 @@ function runCommands() {
 		commandData.currentIndex = 0;
 		runNextStep()
 	}
+}
+
+function applyProgressState(state) {
+	const progressAnimation = window.document.getElementById('script-progress-animation');
+	function showProgressAnimation() {
+		if (progressAnimation.dataset.hidden) {
+			delete progressAnimation.dataset.hidden;
+			progressAnimation.classList.remove('hidden');
+		}
+	}
+	function hideProgressAnimation() {
+		if (!progressAnimation.dataset.hidden) {
+			progressAnimation.dataset.hidden = true;
+			progressAnimation.classList.add('hidden');
+		}
+	}
+	if (['finished', 'hold', 'failed'].includes(state)) return hideProgressAnimation();
+	showProgressAnimation();
 }

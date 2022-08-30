@@ -10,6 +10,7 @@
 
     <link rel="stylesheet" href="js/json-pollock/dist/json-pollock.min.css">
     <link rel="stylesheet" href="main.css">
+    <link rel="stylesheet" href="animation.css">
   </head>
   <body>
     <div id="root">
@@ -18,7 +19,10 @@
           
             <div class="cell">
               <div id="script-window-root">
-                <div id="script-window-header" class="window-header script-window-header">SCRIPT</div>
+                <div id="script-window-header" class="window-header script-window-header">
+                  <div>SCRIPT</div>
+                  <div id="script-progress-animation" class="dot-flashing  hidden" data-hidden="true"></div>
+                </div>
                 <div class="table">
                   <div class="row">
                     <div id="script-window-content" class="cell script-window-content"></div>

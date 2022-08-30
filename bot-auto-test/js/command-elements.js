@@ -6,7 +6,7 @@ function buildCommands() {
     new SendCmd(scriptContainer, toolContainer),
     new ExpectTextEqCmd(scriptContainer, toolContainer),
     new ExpectTextContainsCmd(scriptContainer, toolContainer),
-    new ExpectQuickRepliesContainCmd(scriptContainer, toolContainer),
+    new ExpectQuickReplyExistsCmd(scriptContainer, toolContainer),
     new ExpectQuickRepliesCountCmd(scriptContainer, toolContainer),
   ]
   commands.forEach(c => c.createButtonView())

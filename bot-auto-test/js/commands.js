@@ -55,7 +55,6 @@ class Command {
     const el = window.document.createElement(type);
     el.dataset.commandId = commandId;
     el.classList.add(...classes);
-    el.id = `${classes.join('-')}_${commandId}`;
     parrent.appendChild(el);
     return el;
   }
@@ -89,6 +88,47 @@ class Command {
     const prms = this.createScriptElement('div', commandId, parrent, 'cell', 'params');
     prms.innerText = '';
     return prms;
+  }
+
+  createTextArea(parrent, commandId, paramName) {
+    const div = this.createScriptElement('div', commandId, parrent, 'cell');
+    const input = this.createScriptElement('textarea', commandId, div);
+    
+    const onChange = () => {
+      const scriptItem = this.getScriptItem(commandId);
+      scriptItem.params[paramName] = input.text || input.value;
+    }
+
+    input.setAttribute('placeholder', 'text');
+    input.addEventListener('focusout', () => { onChange() });
+    input.addEventListener('keypress', event => { if (event.code === 'Enter') onChange(); });
+
+    return input
+  }
+
+  createCheckBox(parrent, commandId, paramName, label) {
+    const div = this.createScriptElement('div', commandId, parrent, 'cell');
+    // Create Checkbox
+    const input = this.createScriptElement('input', commandId, div);
+    input.setAttribute('type', 'checkbox');
+    input.setAttribute('name', paramName);
+
+    // Create label
+    const lbl = this.createScriptElement('label', commandId, div);
+    lbl.setAttribute('for', paramName);
+    lbl.innerText = label;
+    
+    const onChange = () => {
+      const scriptItem = this.getScriptItem(commandId);
+      scriptItem.params[paramName] = input.checked;
+      console.log(paramName, input.checked);
+    }
+
+    // input.addEventListener('focusout', () => { onChange() });
+    input.addEventListener('change', () => { onChange(); });
+    // input.addEventListener('input', () => { onChange(); });
+
+    return input
   }
 
   createScriptView (commandId) {
@@ -208,18 +248,9 @@ class SendCmd extends UserMessageCmd {
   }
 
   createScriptParamsView(parrent, commandId) {
-    const prms = super.createScriptParamsView(parrent, commandId);
-    const input = this.createScriptElement('textarea', commandId, prms, 'send-text-command');
-
-    const onChange = () => {
-      const scriptItem = this.getScriptItem(commandId);
-      scriptItem.params.text = input.text || input.value;
-    }
-
-    input.setAttribute('placeholder', 'text');
-    input.addEventListener('focusout', () => { onChange() });
-    input.addEventListener('keypress', event => { if (event.code === 'Enter') onChange(); });
-    return prms;
+    const paramView = super.createScriptParamsView(parrent, commandId);
+    this.createTextArea(paramView, commandId, 'text');
+    return paramView;
   }
 }
 
@@ -229,22 +260,19 @@ class ExpectTextEqCmd extends ExpectCmd {
   }
   
   checkCondition(scriptItem) {
-    return !!commandData.responses.find(e => e.message == scriptItem.params.text );
+    const { caseSensitive, text } = scriptItem.params;
+    const expected = caseSensitive ? text : text.toLowerCase(); 
+    const received = caseSensitive ?
+      commandData.responses.find(e => e.message && e.message == expected) :
+      commandData.responses.find(e => e.message && e.message.toLowerCase() == expected);
+    return !!received;
   }
 
   createScriptParamsView(parrent, commandId) {
-    const prms = super.createScriptParamsView(parrent, commandId);
-    const input = this.createScriptElement('textarea', commandId, prms, 'expect-text-command');
-
-    const onChange = () => {
-      const scriptItem = this.getScriptItem(commandId);
-      scriptItem.params.text = input.text || input.value;
-    }
-
-    input.setAttribute('placeholder', 'text');
-    input.addEventListener('focusout', () => { onChange() });
-    input.addEventListener('keypress', event => { if (event.code === 'Enter') onChange(); });
-    return prms;
+    const paramView = super.createScriptParamsView(parrent, commandId);
+    this.createTextArea(paramView, commandId, 'text');
+    this.createCheckBox(paramView, commandId, 'caseSensitive', 'Case sensitive');
+    return paramView;
   }
 }
 
@@ -254,48 +282,43 @@ class ExpectTextContainsCmd extends ExpectCmd {
   }
   
   checkCondition(scriptItem) {
-    return !!commandData.responses.find(e => e.message && e.message.indexOf(scriptItem.params.text) >= 0);
+    const { caseSensitive, text } = scriptItem.params;
+    const expected = caseSensitive ? text : text.toLowerCase(); 
+    const received = caseSensitive ?
+      commandData.responses.find(e => e.message && e.message.indexOf(expected) >= 0) :
+      commandData.responses.find(e => e.message && e.message.toLowerCase().indexOf(expected) >= 0);
+    return !!received;
   }
 
   createScriptParamsView(parrent, commandId) {
-    const prms = super.createScriptParamsView(parrent, commandId);
-    const input = this.createScriptElement('textarea', commandId, prms, 'expect-text-command');
-
-    const onChange = () => {
-      const scriptItem = this.getScriptItem(commandId);
-      scriptItem.params.text = input.text || input.value;
-    }
-
-    input.setAttribute('placeholder', 'text');
-    input.addEventListener('focusout', () => { onChange() });
-    input.addEventListener('keypress', event => { if (event.code === 'Enter') onChange(); });
-    return prms;
+    const paramView = super.createScriptParamsView(parrent, commandId);
+    this.createTextArea(paramView, commandId, 'text');
+    this.createCheckBox(paramView, commandId, 'caseSensitive', 'Case sensitive');
+    return paramView;
   }
 }
 
-class ExpectQuickRepliesContainCmd extends ExpectCmd {
+class ExpectQuickReplyExistsCmd extends ExpectCmd {
   constructor(scriptContainer, toolContainer) {
-    super('Expect Quick Reply contains', scriptContainer, toolContainer);
+    super('Expect Quick Reply exists', scriptContainer, toolContainer);
   }
   
   checkCondition(scriptItem) {
     const lastResp = commandData.responses[commandData.responses.length-1];
-    return !!(lastResp.quickReplies?.replies || []).find(q => q.title == scriptItem.params.text);
+    const replies = lastResp.quickReplies?.replies || [];
+    const caseSensitive = scriptItem.params.caseSensitive;
+    const expected = caseSensitive ?
+      scriptItem.params.text :
+      scriptItem.params.text.toLowerCase();
+    const received = replies.find(q => expected == (caseSensitive ? q.title : q.title.toLowerCase()));
+    return !!received;
   }
 
   createScriptParamsView(parrent, commandId) {
-    const prms = super.createScriptParamsView(parrent, commandId);
-    const input = this.createScriptElement('textarea', commandId, prms, 'expect-qr-command');
-
-    const onChange = () => {
-      const scriptItem = this.getScriptItem(commandId);
-      scriptItem.params.text = input.text || input.value;
-    }
-
-    input.setAttribute('placeholder', 'title');
-    input.addEventListener('focusout', () => { onChange() });
-    input.addEventListener('keypress', event => { if (event.code === 'Enter') onChange(); });
-    return prms;
+    const paramView = super.createScriptParamsView(parrent, commandId);
+    this.createTextArea(paramView, commandId, 'text');
+    this.createCheckBox(paramView, commandId, 'caseSensitive', 'Case sensitive');
+    return paramView;
   }
 }
 

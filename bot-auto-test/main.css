@@ -35,6 +35,7 @@ body {
   font-family: 'Courier New', Courier, monospace;
   text-align: center;
   min-width: calc(100% - 20px);
+  min-height: 30px;
 }
 
 .chat-window-header {
