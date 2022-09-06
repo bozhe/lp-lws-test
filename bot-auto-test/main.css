@@ -177,25 +177,9 @@ body {
   margin-top: 5px;
 }
 
-.command-container {
-  background-color: #5a93bf;
-  padding-top: 5px;
-  margin-top: 5px;
-  border-radius: 5px;
-  display: flex;
-  min-height: 30;
-}
-
 .not-active {
   pointer-events: none;
   cursor: default;
-}
-
-.command-container.success {
-  background-color: rgb(102, 186, 102);
-}
-.command-container.failed {
-  background-color: rgb(186, 102, 102);
 }
 
 .cell.command {
@@ -206,22 +190,6 @@ body {
   height: 100%;
   padding-left: 5px;
   vertical-align: middle;
-}
-
-.cell.params {
-  padding-left: 10;
-  width: fit-content !important;
-}
-
-textarea.expect-qr-command
-textarea.expect-text-command
-textarea.send-text-command {
-  min-width: 300px;
-  height: 30px;
-}
-
-.cmd-controls-container {
-  margin-left: auto;
 }
 
 .cmd-ctrl-btn {
@@ -382,4 +350,40 @@ textarea.send-text-command {
   
   color: #102840 !important;
   background: #85b8e2 !important;
+}
+
+/* ========= NEW =========== */
+.command-container {
+  background-color: #5a93bf;
+  padding-top: 5px;
+  margin-top: 5px;
+  border-radius: 5px;
+  display: flex;
+  min-height: 30;
+}
+.command-container.success {
+  background-color: rgb(102, 186, 102);
+}
+.command-container.failed {
+  background-color: rgb(186, 102, 102);
+}
+.command-label {
+  margin-left: 5px;
+  margin-top: 3px;
+}
+.command-params {
+  display: table-cell;
+  padding: 2px;
+  width: 50%;
+  padding-left: 10;
+  width: fit-content !important;
+}
+
+textarea.command-param {
+  min-width: 200px;
+  height: 30px;
+}
+
+.command-controll {
+  margin-left: auto;
 }

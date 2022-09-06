@@ -1,262 +1,328 @@
-var commandData = {
-  commands: [],
-  responses: [],
-  lastId: 0,
-  currentIndex: 0,
-  currentState: 'hold',
-}
+const CmdStates = {
+  HOLD: 0,
+  WAIT: 10,
+  NEXT: 20,
+  RUN: 30,
+  FAILED: 40,
+  FINISHED: 50,
+};
 
-/* == HELPERS == */
-function toTitleCase(str) {
-  return str.replace(/^(.{1})(.*)$/, (a, b, c) => {
-    return b.toUpperCase() + (c && c.toLowerCase() || '');
-  });
-}
-
-function clearCommands() {
-  commandData.commands.forEach(c => c.view.containerDiv.remove());
-  commandData.commands = [];
-}
-
-function saveToJson() {
-  const commands = commandData.commands.map(c => { return { command: c.cmd.toJson(), params: c.params }; });
-  console.log(commands);
-}
-
-/* == Commands == */
-
-// == Base Clases == //
-class Command {
-  constructor(title, scriptContainer, toolContainer) {
-    this.name = title.toLowerCase();
-    this.buttonTitle = toTitleCase(title);
-    this.commandTitle = title.toUpperCase();
-    this.scriptContainer = scriptContainer;
-    this.toolContainer = toolContainer;
-    this.succesState = 'next';
-    this.failedState = 'failed';
-    this.defaultParams = {};
+class TestScriptModel {
+  constructor(...commandClasses) {
+    this.commandClasses = commandClasses;
+    this.reset();
   }
 
-  toJson() { return { name: this.name }; }
-
-  createId() { return commandData.lastId += 1; }
-
-  createButtonView () {
-    const btn = window.document.createElement('div');
-    btn.classList.add('script-window-tool-btn');
-    btn.innerText = this.buttonTitle;
-    this.toolContainer.appendChild(btn);
-    btn.onclick = () => { this.addToScript() };
-    return btn;
+  reset () {
+    this.commands = [];
+    this.responses = [];
+    this.currentIndex = 0;
+    this.currentState = CmdStates.HOLD;
+    return this;
   }
 
-  createScriptElement(type, commandId, parrent, ...classes) {
+  indexById (id) {
+    return this.commands.findIndex(item => item.id == id);
+  }
+
+  isRunning() {
+    return [CmdStates.WAIT, CmdStates.NEXT, CmdStates.RUN].includes(this.currentState);
+  }
+
+  lastResponse() {
+    return this.responses[this.responses.length-1];
+  }
+
+  append(command, view) {
+    const id = this.commands.length;
+    view.id = id;
+    this.commands.push({ command, view, id });
+  }
+
+  moveCommand(targetIndex, destIndex) {
+    // Model Items
+    const targetItem = this.commands[targetIndex];
+    const destItem = this.commands[destIndex];
+    // Move HTML Elements
+    const targetContainer = targetItem.view.container;
+    const destContainer = destItem.view.container;
+    targetContainer.parentNode.insertBefore(targetContainer, destContainer);
+    // Move model items
+    this.commands.splice(targetIndex, 1);
+    this.commands.splice(destIndex, 0, targetItem);
+  }
+  
+  moveCommandUp(id) {
+    if (this.isRunning()) return alert('Test can\'t be updated while is running');
+    const index = this.indexById(id);
+    if (index > 0) return this.moveCommand(index, index - 1);
+  }
+
+  moveCommandDown(id) {
+    if (this.isRunning()) return alert('Test can\'t be updated while is running');
+    const index = this.indexById(id);
+    if (index < this.commands.length - 1) return this.moveCommand(index, index + 1);
+  }
+
+  removeCommand(id) {
+    if (this.isRunning()) return alert('Test can\'t be updated while is running');
+    const index = this.indexById(id);
+    if (index >= 0) {
+      const { command, view } = this.commands[index];
+      
+      const msg = "Are you sure you want to delete the following?\n\n" +
+        command.constructor.readableName + "\n" +
+        Object.keys(command.params).map(k => `    ${k}: ${command.params[k]}`).join("\n");
+
+      if (confirm(msg)) {
+        view.remove();
+        this.commands.splice(index, 1);
+      }
+    };
+  }
+
+  clearCommands() {
+    if (this.isRunning()) return alert('Test can\'t be updated while is running');
+    const msg = "Are you sure you want to clean the test script?";
+    if (confirm(msg)) {
+      this.commands.forEach(i => i.view.remove());
+      this.reset();
+    }
+  }
+  
+  toJsonString() {
+    return JSON.stringify(this.commands.map(i => i.command.toObject()), null, 2);
+  }
+  
+  fromJsonString(str, parent) {
+    const obj = JSON.parse(str);
+    obj.forEach(c => {
+      const cls = this.commandClasses.find(rc => rc.commandName == c.name);
+      if (cls) {
+        const cmd = new cls(c.params);
+        const view = cmd.createView(parent);
+        this.append(cmd, view);
+      } else {
+        console.log(`Can not create command ${c.name}`);
+      }
+    })
+  }
+}
+
+/** VIEW CLASSES  **/
+class CmdViewBase {
+  constructor(parent, name, params) {
+    this.container = this.createContainer(parent);
+    this.label = this.createLabel(name);
+    this.paramView = this.createParamView(params);
+    this.controls = this.createControls();
+  }
+
+  remove() {
+    this.container.remove();
+  }
+
+  onSuccess() {
+    this.container.classList.remove('failed');
+    this.container.classList.add('success');
+  }
+
+  onFail() {
+    this.container.classList.add('failed');
+    this.container.classList.remove('success');
+  }
+
+  reset() {
+    this.container.classList.remove('failed');
+    this.container.classList.remove('success');
+  }
+
+  defaultUpdater(params, name) {
+    return function(value) {
+      params[name] = value;
+      // console.log('TODO: ', name, value, params);
+      // console.log(commandsModel.commands);
+    }
+  }
+
+  // Base elements
+  createElement(type, parent, ...classes) {
     const el = window.document.createElement(type);
-    el.dataset.commandId = commandId;
-    el.classList.add(...classes);
-    parrent.appendChild(el);
+    if (classes) el.classList.add(...classes);
+    parent.appendChild(el);
     return el;
   }
+  createContainer(parent) { return this.createElement('div', parent, 'command-container'); }
+  createParamView(params) {
+    const view = this.createElement('div', this.container, 'command-params');
+    return view;
+  }
+  createLabel(name) {
+    const lbl = this.createElement('lable', this.container, 'command-label');
+    lbl.innerText = name;
+    return lbl;
+  }
+  createControls() {
+    const view = this.createElement('div', this.container, 'command-controll');
 
-  createScriptViewContainer (commandId) {
-    return this.createScriptElement('div', commandId, this.scriptContainer, 'command-container');
+    const btnUp = this.createElement('div', view, 'cmd-ctrl-btn', 'up');
+    const imgUp = this.createElement('img', btnUp, 'cmd-ctrl-img', 'up');
+    imgUp.setAttribute('src', 'assets/svg/circle-up.svg');
+    btnUp.onclick = () => { moveCommandUp(this.id); };
+
+    const btnDown = this.createElement('div', view, 'cmd-ctrl-btn', 'down');
+    const imgDown = this.createElement('img', btnDown, 'cmd-ctrl-img', 'down');
+    imgDown.setAttribute('src', 'assets/svg/circle-down.svg');
+    btnDown.onclick = () => { moveCommandDown(this.id); };
+
+    const btnRemove = this.createElement('div', view, 'cmd-ctrl-btn', 'remove');
+    const imgRemove = this.createElement('img', btnRemove, 'cmd-ctrl-img', 'remove');
+    imgRemove.setAttribute('src', 'assets/svg/circle-remove.svg');
+    btnRemove.onclick = () => { removeCommand(this.id); };
+
+    return view;
   }
 
-  createScriptCmndControls (parrent, commandId) {
-    const container = this.createScriptElement('div', commandId, parrent, 'cmd-controls-container');
-    
-    const createCtrl = (src, title, onClick) => {
-      const btn = this.createScriptElement('div', commandId, container, 'cmd-ctrl-btn', title);
-      const img = this.createScriptElement('img', commandId, btn, 'cmd-ctrl-img', title);
-      img.setAttribute("src", src);
-      btn.onclick = onClick;
-    }
-
-    createCtrl("assets/svg/circle-up.svg", "up", () => { this.moveUp(commandId) });
-    createCtrl("assets/svg/circle-down.svg", "down",  () => { this.moveDown(commandId) });
-    createCtrl("assets/svg/circle-remove.svg", "delete",  () => { this.removeFromScript(commandId) });
-  }
-
-  createScriptCmndView (parrent, commandId) {
-    const cmnd = this.createScriptElement('div', commandId, parrent, 'cell', 'command');
-    cmnd.innerText = this.commandTitle;
-    return cmnd;
-  }
-
-  createScriptParamsView (parrent, commandId) {
-    const prms = this.createScriptElement('div', commandId, parrent, 'cell', 'params');
-    prms.innerText = '';
-    return prms;
-  }
-
-  createTextArea(parrent, commandId, paramName) {
-    const div = this.createScriptElement('div', commandId, parrent, 'cell');
-    const input = this.createScriptElement('textarea', commandId, div);
-    
-    const onChange = () => {
-      const scriptItem = this.getScriptItem(commandId);
-      scriptItem.params[paramName] = input.text || input.value;
-    }
-
+  // Param Elements
+  createTextArea(parent, value, updateParamCallback) {
+    const input = this.createElement('textarea', parent, 'command-param');
+    const onChange = () => { updateParamCallback(input.value); }
+    input.value = value;
     input.setAttribute('placeholder', 'text');
     input.addEventListener('focusout', () => { onChange() });
     input.addEventListener('keypress', event => { if (event.code === 'Enter') onChange(); });
-
     return input
   }
-
-  createCheckBox(parrent, commandId, paramName, label, checked) {
-    const div = this.createScriptElement('div', commandId, parrent, 'cell');
+  createCheckBox(parent, label, checked, updateParamCallback) {
+    const name = label.replace(/\s/g, '-');
+    const div = this.createElement('div', parent, 'cell');
+    
     // Create Checkbox
-    const input = this.createScriptElement('input', commandId, div);
+    const input = this.createElement('input', div);
     input.setAttribute('type', 'checkbox');
-    input.setAttribute('name', paramName);
+    input.setAttribute('name', name);
     input.checked = !!checked;
 
     // Create label
-    const lbl = this.createScriptElement('label', commandId, div);
-    lbl.setAttribute('for', paramName);
+    const lbl = this.createElement('label', div);
+    lbl.setAttribute('for', name);
     lbl.innerText = label;
     
-    const onChange = () => {
-      const scriptItem = this.getScriptItem(commandId);
-      scriptItem.params[paramName] = input.checked;
-      console.log(paramName, input.checked);
-    }
-
+    // On Update
+    const onChange = () => { updateParamCallback(input.checked); }
     input.addEventListener('change', () => { onChange(); });
 
     return input
   }
+}
+class ResetView extends CmdViewBase {}
+class SendView extends CmdViewBase {
+  createParamView(params) { 
+    const view = super.createParamView(params);
+    this.createTextArea(view, params.text, this.defaultUpdater(params, 'text'));
+  }
+}
+class ExpectTextView extends CmdViewBase {
+  createParamView(params) { 
+    const view = super.createParamView(params);
+    this.createTextArea(view, params.text, this.defaultUpdater(params, 'text'));
+    this.createCheckBox(view, 'Case sensitive', params.caseSensitive, this.defaultUpdater(params, 'caseSensitive'));
+    this.createCheckBox(view, 'Ignore apostrophes', params.ignoreApostrophes, this.defaultUpdater(params, 'ignoreApostrophes'));
+  }
+}
+class ExpectQRView extends CmdViewBase {
+  createParamView(params) { 
+    const view = super.createParamView(params);
+    this.createTextArea(view, params.text, this.defaultUpdater(params, 'text'));
+    this.createCheckBox(view, 'Case sensitive', params.caseSensitive, this.defaultUpdater(params, 'caseSensitive'));
+  }
+}
 
-  createScriptView (commandId) {
-    const containerDiv = this.createScriptViewContainer(commandId);
-    const commandDiv = this.createScriptCmndView(containerDiv, commandId);
-    const parametersDiv = this.createScriptParamsView(containerDiv, commandId);
-    const controlsDiv = this.createScriptCmndControls(containerDiv, commandId);
-    
-    return { containerDiv, commandDiv, parametersDiv };
+/** MODEL CLASSES **/
+class CmdModelBase {
+  static commandName = 'BaseCommand';
+  static readableName = 'Base Command';
+  static viewClass = CmdViewBase;
+  constructor(params) {//}) {
+    this.params = params;
+    this.succesState = CmdStates.NEXT;
+    this.failedState = CmdStates.FAILED;
   }
 
-  getScriptItem(commandId) {
-    return commandData.commands.find(c => c.commandId == commandId);
+  onSuccess() { this.view.onSuccess() };
+  
+  onFail() {  this.view.onFail(); };
+
+  toObject() {
+    return { name: this.constructor.commandName, params: this.params }
   }
 
-  run(scriptItem, chatObject, callback) {
-    scriptItem.onSuccess();
+  createView(parent) {
+    const viewClass = this.constructor.viewClass;
+    this.view = new viewClass(parent, this.constructor.readableName, this.params);
+    return this.view;
+  }
+
+  run(chat, callback) {}
+}
+
+class UserMessageCmd extends CmdModelBase {
+  constructor(params) {
+    super(params);
+    this.succesState = CmdStates.WAIT;
+  }
+
+  run(chat, callback) {
+    chat.sendMessage(this.params.text);
+    this.onSuccess();
     callback(this.succesState);
   }
-
-  moveCommand(indToBeMoved, indToBeInsertBefore) {
-    // Move HTML Elements
-    const containerToBeMoved = commandData.commands[indToBeMoved].view.containerDiv;
-    const containerToInsertBefore = commandData.commands[indToBeInsertBefore].view.containerDiv;
-    containerToBeMoved.parentNode.insertBefore(containerToBeMoved, containerToInsertBefore);
-    // Move model items
-    const element = commandData.commands[indToBeMoved];
-    commandData.commands.splice(indToBeMoved, 1);
-    commandData.commands.splice(indToBeInsertBefore, 0, element);
-  }
-
-  moveUp(commandId) {
-    const index = commandData.commands.findIndex(item => item.commandId == commandId);
-    if (index === 0) return;
-    this.moveCommand(index, index-1);
-  }
-
-  moveDown(commandId) {
-    const index = commandData.commands.findIndex(item => item.commandId == commandId);
-    if (index === commandData.commands.length-1) return;
-    this.moveCommand(index+1, index);
-  }
-
-  removeFromScript(commandId) {
-    const index = commandData.commands.findIndex(item => item.commandId == commandId);
-    const container = commandData.commands[index].view.containerDiv;
-    commandData.commands.splice(index, 1);
-    container.remove();
-  }
-
-  addToScript() {
-    const commandId = this.createId();
-    const view = this.createScriptView(commandId);
-    commandData.commands.push({
-      commandId,
-      cmd: this,
-      params: Object.assign({}, this.defaultParams || {}),
-      view,
-      onFail: () => {
-        view.containerDiv.classList.remove('success');
-        view.containerDiv.classList.add('failed');
-      },
-      onSuccess: () => {
-        view.containerDiv.classList.add('success');
-        view.containerDiv.classList.remove('failed');
-      },
-      reset: () => {
-        view.containerDiv.classList.remove('success');
-        view.containerDiv.classList.remove('failed');
-      }
-    });
-  }
 }
 
-class UserMessageCmd extends Command {
-  constructor(name, scriptContainer, toolContainer) {
-    super(name, scriptContainer, toolContainer);
-    this.succesState = 'wait';
-  }
-
-  run(scriptItem, chatObject, callback) {
-    chatObject.sendMessage(scriptItem.params.text);
-    scriptItem.onSuccess();
-    callback('wait');
-  }
-}
-
-class ExpectCmd extends Command {
-  constructor(name, scriptContainer, toolContainer) {
-    super(name, scriptContainer, toolContainer);
-  }
+class ExpectCmd extends CmdModelBase {
+  checkCondition() { return true; }
   
-  checkCondition(scriptItem) {
-    return true;
-  }
-
-  run(scriptItem, chatObject, callback) {
-    if (this.checkCondition(scriptItem)) {
-      scriptItem.onSuccess(); callback(this.succesState);
+  run(chat, callback) {
+    if (this.checkCondition()) {
+      this.onSuccess(); callback(this.succesState);
     } else {
-      scriptItem.onFail(); callback(this.failedState);
+      this.onFail(); callback(this.failedState);
     }
   }
 }
 
-// == Implementatoins == //
+// == Send == //
 class ResetCmd extends UserMessageCmd {
-  constructor(scriptContainer, toolContainer) {
-    super('Reset', scriptContainer, toolContainer);
-    this.defaultParams = { text: 'reset' };
+  static commandName = 'Reset';
+  static readableName = 'Reset';
+  static viewClass = ResetView;
+  constructor(params) {
+    const defaultParams = { text: 'reset' };
+    super(Object.assign(defaultParams, params));
   }
 }
 
 class SendCmd extends UserMessageCmd {
-  constructor(scriptContainer, toolContainer) {
-    super('Send', scriptContainer, toolContainer);
-  }
+  static commandName = 'Send';
+  static readableName = 'Send';
+  static viewClass = SendView;
 
-  createScriptParamsView(parrent, commandId) {
-    const paramView = super.createScriptParamsView(parrent, commandId);
-    this.createTextArea(paramView, commandId, 'text');
-    return paramView;
+  constructor(params) {
+    const defaultParams = { text: "" };
+    super(Object.assign(defaultParams, params));
   }
 }
 
+// == Expect Bases == //
 class ExpectTextBase extends ExpectCmd {
-  constructor(name, scriptContainer, toolContainer) {
-    super(name, scriptContainer, toolContainer);
-    this.defaultParams = { ignoreApostrophes: true };
+  static viewClass = ExpectTextView;
+  constructor(params) {
+    const defaultParams = {
+      caseSensitive: false,
+      ignoreApostrophes: true,
+      text: "",
+    };
+    super(Object.assign(defaultParams, params))
   }
 
   removeApostrophes(value) {
@@ -267,100 +333,81 @@ class ExpectTextBase extends ExpectCmd {
     return res;
   }
 
-  prepareValue(value, params) {
+  prepareValue(value) {
     let res = value.replace(/\<\/?(b|i)\>/ig, ''); // Remove bold, italic tags;
-    if (params.ignoreApostrophes) res = this.removeApostrophes(res);
-    if (!params.caseSensitive) res = res.toLowerCase();
+    if (this.params.ignoreApostrophes) res = this.removeApostrophes(res);
+    if (!this.params.caseSensitive) res = res.toLowerCase();
     return res;
-  }
-
-  createScriptParamsView(parrent, commandId) {
-    const paramView = super.createScriptParamsView(parrent, commandId);
-    this.createTextArea(paramView, commandId, 'text');
-    this.createCheckBox(paramView, commandId, 'caseSensitive', 'Case sensitive');
-    this.createCheckBox(paramView, commandId, 'ignoreApostrophes', 'Ignore apostrophes', true);
-    return paramView;
   }
 }
 
-class ExpectTextEqCmd extends ExpectTextBase {
-  constructor(scriptContainer, toolContainer) {
-    super('Expect text equal', scriptContainer, toolContainer);
+class ExpectQRBaseCmd extends ExpectCmd {
+  static viewClass = ExpectQRView;
+  constructor(params) {
+    const defaultParams = {
+      caseSensitive: false,
+      text: "",
+    };
+    super(Object.assign(defaultParams, params))
   }
+
+  prepareValue(value) {
+    return this.params.caseSensitive ? value : value.toLowerCase();
+  }
+}
+
+// == Expect Implementation == //
+class ExpectTextEqCmd extends ExpectTextBase {
+  static commandName = 'ExpectTextEqual';
+  static readableName = 'Expect Text Equal';
   
-  checkCondition(scriptItem) {
-    const { params } = scriptItem;
-    const expected = this.prepareValue(params.text, params); 
-    const found = commandData.responses.find(e => this.prepareValue(e.message, params) == expected);
+  checkCondition() {
+    const expected = this.prepareValue(this.params.text);
+    const found = commandsModel.responses.find(e => this.prepareValue(e.message) == expected);
     return !!found;
   }
 }
 
 class ExpectTextContainsCmd extends ExpectTextBase {
-  constructor(scriptContainer, toolContainer) {
-    super('Expect text contains', scriptContainer, toolContainer);
-  }
-  
-  checkCondition(scriptItem) {
-    const { params } = scriptItem;
-    const expected = this.prepareValue(params.text, params); 
-    const found = commandData.responses.find(e => {
-      console.log(`"${this.prepareValue(e.message, params)}".indexOf("${expected}") = ${this.prepareValue(e.message, params).indexOf(expected)}`);
-      return this.prepareValue(e.message, params).indexOf(expected) >= 0
-    });
+  static commandName = 'ExpectTextContains';
+  static readableName = 'Expect Text Contains';
+
+  checkCondition() {
+    const expected = this.prepareValue(this.params.text); 
+    const found = commandsModel.responses.find(e => this.prepareValue(e.message).indexOf(expected) >= 0);
     return !!found;
   }
 }
 
-class ExpectQuickReplyExistsCmd extends ExpectCmd {
-  constructor(scriptContainer, toolContainer) {
-    super('Expect Quick Reply exists', scriptContainer, toolContainer);
-  }
-  
-  checkCondition(scriptItem) {
-    const lastResp = commandData.responses[commandData.responses.length-1];
-    const replies = lastResp.quickReplies?.replies || [];
-    const caseSensitive = scriptItem.params.caseSensitive;
-    const expected = caseSensitive ?
-      scriptItem.params.text :
-      scriptItem.params.text.toLowerCase();
-    const received = replies.find(q => expected == (caseSensitive ? q.title : q.title.toLowerCase()));
-    return !!received;
-  }
+class ExpectQRExistsCmd extends ExpectQRBaseCmd {
+  static commandName = 'ExpectQRExists';
+  static readableName = 'Expect QR Exists';
 
-  createScriptParamsView(parrent, commandId) {
-    const paramView = super.createScriptParamsView(parrent, commandId);
-    this.createTextArea(paramView, commandId, 'text');
-    this.createCheckBox(paramView, commandId, 'caseSensitive', 'Case sensitive');
-    return paramView;
+  checkCondition() {
+    const replies = commandsModel.lastResponse()?.quickReplies?.replies || [];
+    const expected = this.prepareValue(this.params.text);
+    const found = replies.find(q => expected == this.prepareValue(q.title));
+    return !!found;
   }
 }
 
-class ExpectQuickRepliesCountCmd extends ExpectCmd {
-  constructor(scriptContainer, toolContainer) {
-    super('Expect quick replies count', scriptContainer, toolContainer);
-  }
-  
-  checkCondition(scriptItem) {
-    const lastResp = commandData.responses[commandData.responses.length-1];
-    const count = (lastResp.quickReplies?.replies || []).length;
-    const success = count == scriptItem.params.count;
-    if (!success) console.error(`Expected QR count ${scriptItem.params.count}, received ${count}`);
-    return success;
-  }
+class ExpectQRContainsCmd extends ExpectQRBaseCmd {
+  static commandName = 'ExpectQRContains';
+  static readableName = 'Expect QR Contains';
 
-  createScriptParamsView(parrent, commandId) {
-    const prms = super.createScriptParamsView(parrent, commandId);
-    const input = this.createScriptElement('input', commandId, prms, 'expect-qr-command');
-
-    const onChange = () => {
-      const scriptItem = this.getScriptItem(commandId);
-      scriptItem.params.count = input.text || input.value;
-    }
-
-    input.setAttribute('placeholder', 'number');
-    input.addEventListener('focusout', () => { onChange() });
-    input.addEventListener('keypress', event => { if (event.code === 'Enter') onChange(); });
-    return prms;
+  checkCondition() {
+    const replies = commandsModel.lastResponse()?.quickReplies?.replies || [];
+    const expected = this.prepareValue(this.params.text);
+    const found = replies.find(q => this.prepareValue(q.title).indexOf(expected) >= 0);
+    return !!found;
   }
 }
+
+const commandsModel = new TestScriptModel(
+  ResetCmd
+  , SendCmd
+  , ExpectTextEqCmd
+  , ExpectTextContainsCmd
+  , ExpectQRExistsCmd
+  , ExpectQRContainsCmd
+);
