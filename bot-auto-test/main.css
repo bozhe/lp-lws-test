@@ -41,6 +41,23 @@ body {
 .chat-window-header {
   color: #c2daf0;
   background-color: #102840;
+  display: flex;
+}
+
+.chat-header-cell {
+  display: table-cell;
+  width: 33%;
+}
+
+.chat-header-cell.right {
+  display: flex;
+  flex-direction: row-reverse;
+}
+
+.chat-window-init-button {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
 }
 
 .script-window-header {
@@ -51,7 +68,7 @@ body {
 .chat-window-content {
   border-top: 1px #5a93bf solid;
   overflow: auto;
-  height: calc(100vh - 50px);
+  height: calc(100vh - 80px);
   vertical-align: top;
   margin-top: 5px;
 }
@@ -70,6 +87,7 @@ body {
   color: #102840;
   background-color: #85b8e2;
   text-align: left;
+  white-space: pre-wrap;
 }
 
 .chat-user-msg-text {
@@ -117,6 +135,12 @@ body {
   cursor: pointer;
 }
 
+
+.not-active .script-window-tool-btn {
+  background-color:rgba(0, 0, 0, 0.25) !important;
+  color: rgba(0, 0, 0, 0.5);
+}
+
 .script-window-tool-btn:hover {
   background: linear-gradient(rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.25));
 }
@@ -162,6 +186,11 @@ body {
   min-height: 30;
 }
 
+.not-active {
+  pointer-events: none;
+  cursor: default;
+}
+
 .command-container.success {
   background-color: rgb(102, 186, 102);
 }
@@ -194,15 +223,24 @@ textarea.send-text-command {
 .cmd-controls-container {
   margin-left: auto;
 }
+
 .cmd-ctrl-btn {
   padding: 0px 4px;
   display: table-cell;
 }
+
 .cmd-ctrl-img {
   height: 20px;
   filter: invert(10%) sepia(54%) saturate(1526%) hue-rotate(185deg) brightness(95%) contrast(91%);
 }
 
+.chat-ctrl-img {
+  height: 20px;
+  filter: invert(75%) sepia(16%) saturate(860%) hue-rotate(167deg) brightness(91%) contrast(94%);
+}
+
+
+/* TODO: Remove: */
 .sde-input-cell {
   width: 100%;
 }

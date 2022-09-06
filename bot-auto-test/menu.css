@@ -1,0 +1,119 @@
+/*General Menu Styling*/
+.connect-menu {
+  margin: 0 auto
+}
+
+li {
+  list-style: none;
+}
+
+li a{
+  text-decoration: none;
+}
+
+.dropdown {
+  position: absolute;
+  width: 200px;
+  top: 41px;
+  opacity: 0;
+  visibility: hidden;
+  transition: ease-out .35s;
+  -moz-transition: ease-out .35s;
+  -webkit-transition: ease-out .35s;
+}
+
+.connect-menu li {
+  float: left;
+  padding: 5px;
+  background: #112740;
+  border-left: 1px dotted #c3d9f0;
+}
+
+.connect-menu li:first-child {
+  border: none;
+}
+
+.connect-menu li a {
+  display: block;
+  padding: 2px 20px;
+  color: #c3d9f0;
+  font-family: arial;
+}
+
+.connect-menu li:hover {
+  background: #5a93bf;
+  transition: ease-in .2s;
+  -moz-transition: ease-in .2s;
+  -webkit-transition: ease-in .2s;
+}
+
+.connect-menu li:hover a {
+  color: #112740;
+  transition: ease-in .2s;
+  -moz-transition: ease-in .2s;
+  -webkit-transition: ease-in .2s;
+}
+
+/*First Level*/
+.subs {
+  position: relative;
+  left: -45px;
+  top: 0px;
+  width: 200px;
+  border-left: none !important;
+  border-bottom: 1px dotted #c3d9f0 !important;
+}
+
+.subs:last-child {
+  border: none !important;
+}
+
+.connect-menu li:hover ul a,
+.connect-menu li:hover ul li ul li a {
+  color: white;
+}
+
+.hassubs:hover .dropdown,
+.hassubs .hassubs:hover .dropdown {
+  opacity: 1;
+  visibility: visible;
+  transition: ease-in .2s;
+  -moz-transition: ease-in .2s;
+  -webkit-transition: ease-in .2s;
+}
+
+.connect-menu li ul li:hover,
+.connect-menu li ul li ul li:hover {
+  background: #5a93bf;
+  transition: ease-in-out .35s;
+  -moz-transition: ease-in-out .35s;
+  -webkit-transition: ease-in-out .35s;
+}
+
+.connect-menu li ul li:hover a,
+.connect-menu li ul li ul li:hover a {
+  color: #112740;
+  transition: ease-in-out .35s;
+  -moz-transition: ease-in-out .35s;
+  -webkit-transition: ease-in-out .35s;
+}
+
+/*Second Level*/
+.hassubs .hassubs .dropdown .subs {
+  left: 25px;
+  position: relative;
+  width: 200px;
+  top: 0px;
+}
+
+.hassubs .hassubs .dropdown {
+  position: absolute;
+  width: 200px;
+  left: 120px;
+  top: 0px;
+  opacity: 0;
+  visibility: hidden;
+  transition: ease-out .35s;
+  -moz-transition: ease-out .35s;
+  -webkit-transition: ease-out .35s;
+}

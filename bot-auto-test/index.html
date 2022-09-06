@@ -6,11 +6,14 @@
     <script src="js/chat-elements.js"></script>
     <script src="js/commands.js"></script>
     <script src="js/command-elements.js"></script>
+    <script src="js/config.js"></script>
     <script src="js/chat-window-connector.js"></script>
+    <script src="js/chat-connection-menu.js"></script>
 
     <link rel="stylesheet" href="js/json-pollock/dist/json-pollock.min.css">
     <link rel="stylesheet" href="main.css">
     <link rel="stylesheet" href="animation.css">
+    <link rel="stylesheet" href="menu.css">
   </head>
   <body>
     <div id="root">
@@ -37,7 +40,57 @@
           
             <div class="cell">
               <div id="chat-window-root" class="chat-window-root">
-                <div id="chat-window-header" class="window-header chat-window-header">CHAT</div>
+                <div id="chat-window-header" class="window-header chat-window-header">
+                  <div class="chat-header-cell left"></div>
+                  <div class="chat-header-cell center">CHAT</div>
+                  <div id="chat-header-rigth" class="chat-header-cell right">
+                    <!-- <div id="chat-progress-animation" class="dot-flashing"></div> -->
+                    <!-- <div class="main">
+                      <ul class="mainnav">
+                        <li class="hassubs"><a href="#">Connect</a>
+                          <ul class="dropdown">
+                              <li class="hassubs"><a href="#">Dev</a>
+                                  <ul class="dropdown">
+                                      <li class="subs hassubs"><a href="#">WEB</a>
+                                          <ul class="dropdown">
+                                              <li class="subs"><a href="#">Home page</a></li>
+                                              <li class="subs"><a href="#">Kitchen</a></li>
+                                              <li class="subs"><a href="#">Price match</a></li>
+                                          </ul>
+                                      </li>
+                                      <li class="subs hassubs"><a href="#">SMS</a>
+                                          <ul class="dropdown">
+                                              <li class="subs"><a href="#">Main</a></li>
+                                          </ul>
+                                      </li>
+                                  </ul>
+                              </li>
+                              <li class="hassubs"><a href="#">Stage</a>
+                                  <ul class="dropdown">
+                                      <li class="subs hassubs"><a href="#">WEB</a>
+                                          <ul class="dropdown">
+                                              <li class="subs"><a href="#">Home page</a></li>
+                                              <li class="subs"><a href="#">Kitchen</a></li>
+                                              <li class="subs"><a href="#">Price match</a></li>
+                                          </ul>
+                                      </li>
+                                      <li class="subs hassubs"><a href="#">SMS</a>
+                                          <ul class="dropdown">
+                                              <li class="subs"><a href="#">Main</a></li>
+                                          </ul>
+                                      </li>
+                                  </ul>
+                              </li>
+                          </ul>
+                        </ul>
+                      <br style="clear: both;">
+                    </div> -->
+
+                    <!-- <div id="chat-window-init-button" class="chat-window-init-button"> -->
+                      <!-- <img class="chat-ctrl-img" src="assets/svg/connect.svg"></img> -->
+                    <!-- </div> -->
+                  </div>
+                </div>
                 <div id="chat-window-content" class="chat-window-content">
                 </div>
               </div>
@@ -50,6 +103,7 @@
       window.onload = () => {
         buildCommands();
         buildSystemButtons();
+        // createMenu();
       }
     </script>
   </body>

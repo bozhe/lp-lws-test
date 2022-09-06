@@ -106,12 +106,13 @@ class Command {
     return input
   }
 
-  createCheckBox(parrent, commandId, paramName, label) {
+  createCheckBox(parrent, commandId, paramName, label, checked) {
     const div = this.createScriptElement('div', commandId, parrent, 'cell');
     // Create Checkbox
     const input = this.createScriptElement('input', commandId, div);
     input.setAttribute('type', 'checkbox');
     input.setAttribute('name', paramName);
+    input.checked = !!checked;
 
     // Create label
     const lbl = this.createScriptElement('label', commandId, div);
@@ -124,9 +125,7 @@ class Command {
       console.log(paramName, input.checked);
     }
 
-    // input.addEventListener('focusout', () => { onChange() });
     input.addEventListener('change', () => { onChange(); });
-    // input.addEventListener('input', () => { onChange(); });
 
     return input
   }
@@ -254,47 +253,62 @@ class SendCmd extends UserMessageCmd {
   }
 }
 
-class ExpectTextEqCmd extends ExpectCmd {
+class ExpectTextBase extends ExpectCmd {
+  constructor(name, scriptContainer, toolContainer) {
+    super(name, scriptContainer, toolContainer);
+    this.defaultParams = { ignoreApostrophes: true };
+  }
+
+  removeApostrophes(value) {
+    // For some reasone the s.replace(/[`"'ʼʻ’]/ig, '') doesn't work
+    const codes = [ 96, 34, 39, 700, 699, 8217 ]; // apostrophes `"'ʼʻ’
+    let res = value;
+    codes.forEach(c => { res = res.replaceAll(String.fromCharCode(c), ''); });
+    return res;
+  }
+
+  prepareValue(value, params) {
+    let res = value.replace(/\<\/?(b|i)\>/ig, ''); // Remove bold, italic tags;
+    if (params.ignoreApostrophes) res = this.removeApostrophes(res);
+    if (!params.caseSensitive) res = res.toLowerCase();
+    return res;
+  }
+
+  createScriptParamsView(parrent, commandId) {
+    const paramView = super.createScriptParamsView(parrent, commandId);
+    this.createTextArea(paramView, commandId, 'text');
+    this.createCheckBox(paramView, commandId, 'caseSensitive', 'Case sensitive');
+    this.createCheckBox(paramView, commandId, 'ignoreApostrophes', 'Ignore apostrophes', true);
+    return paramView;
+  }
+}
+
+class ExpectTextEqCmd extends ExpectTextBase {
   constructor(scriptContainer, toolContainer) {
     super('Expect text equal', scriptContainer, toolContainer);
   }
   
   checkCondition(scriptItem) {
-    const { caseSensitive, text } = scriptItem.params;
-    const expected = caseSensitive ? text : text.toLowerCase(); 
-    const received = caseSensitive ?
-      commandData.responses.find(e => e.message && e.message == expected) :
-      commandData.responses.find(e => e.message && e.message.toLowerCase() == expected);
-    return !!received;
-  }
-
-  createScriptParamsView(parrent, commandId) {
-    const paramView = super.createScriptParamsView(parrent, commandId);
-    this.createTextArea(paramView, commandId, 'text');
-    this.createCheckBox(paramView, commandId, 'caseSensitive', 'Case sensitive');
-    return paramView;
+    const { params } = scriptItem;
+    const expected = this.prepareValue(params.text, params); 
+    const found = commandData.responses.find(e => this.prepareValue(e.message, params) == expected);
+    return !!found;
   }
 }
 
-class ExpectTextContainsCmd extends ExpectCmd {
+class ExpectTextContainsCmd extends ExpectTextBase {
   constructor(scriptContainer, toolContainer) {
     super('Expect text contains', scriptContainer, toolContainer);
   }
   
   checkCondition(scriptItem) {
-    const { caseSensitive, text } = scriptItem.params;
-    const expected = caseSensitive ? text : text.toLowerCase(); 
-    const received = caseSensitive ?
-      commandData.responses.find(e => e.message && e.message.indexOf(expected) >= 0) :
-      commandData.responses.find(e => e.message && e.message.toLowerCase().indexOf(expected) >= 0);
-    return !!received;
-  }
-
-  createScriptParamsView(parrent, commandId) {
-    const paramView = super.createScriptParamsView(parrent, commandId);
-    this.createTextArea(paramView, commandId, 'text');
-    this.createCheckBox(paramView, commandId, 'caseSensitive', 'Case sensitive');
-    return paramView;
+    const { params } = scriptItem;
+    const expected = this.prepareValue(params.text, params); 
+    const found = commandData.responses.find(e => {
+      console.log(`"${this.prepareValue(e.message, params)}".indexOf("${expected}") = ${this.prepareValue(e.message, params).indexOf(expected)}`);
+      return this.prepareValue(e.message, params).indexOf(expected) >= 0
+    });
+    return !!found;
   }
 }
 

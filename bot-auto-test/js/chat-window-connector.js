@@ -1,30 +1,19 @@
 var responses = [];
+var chat;
+// Init JsonPollock renderer
+JsonPollock.init({ maxAllowedElements: 100 });
 
-var chat = new window.windowKit({
-	account: 51200453,
-	campaignId: 3058123630,
-	engagementId: 3058156130, // DEV WEB Kitchen
-	skillId: 3438865930, // DEV WEB Kitchen
-});
+const DEV = {
+	KITCHEN: {
+		account: 51200453,
+		campaignId: 3058123630,
+		engagementId: 3058156130, // DEV WEB Kitchen
+		skillId: 3438865930, // DEV WEB Kitchen
+	}, 
+	
+};
 
-chat.connect();
-
-JsonPollock.init({
-	maxAllowedElements: 100,
-	// onAfterElementRendered: onAfterElementRenderedHandler
-});
-
-	// chat.callBacks.forEach(c => chat[c]((a) => { console.log(c + ': '); console.log(a); }));
-	// chat.onAgentTextEvent((text) => {});
-	// chat.onAgentRichContentEvent((content) => {});
-	// chat.onAgentChatState((state) => {});
-
-chat.onAgentChatState((state) => {
-	if (state == 'PAUSE') checkCommandsState();
-});
-	// window.chat.onAgentTextEvent(text => { instance.botResponses.push(text); });
-	// window.chat.onAgentRichContentEvent(content => { instance.botResponses.push(content); });
-window.chat.onMessageEvent(e => {
+function chatEventHandler(e) {
 	const role = e.originatorMetadata?.role;
 	const eType = e.event?.type || '';
 	const cType = e.event?.contentType || e.event?.content?.type;
@@ -34,6 +23,7 @@ window.chat.onMessageEvent(e => {
 			if (cType == "image") {
 				onBotImage(e.event?.content?.url);
 			} else {
+				console.log(e);
 				onBotReachContent(e.event.content);
 			}
 		}
@@ -51,7 +41,23 @@ window.chat.onMessageEvent(e => {
 			}
 		}
 	}
-});
+}
+
+function chatStateHandler(state) {
+	console.log(state)
+	if (state == 'PAUSE') checkCommandsState();
+}
+
+function initChatConnection(options) {
+	chat = new window.windowKit(options);
+	
+	chat.onAgentChatState(chatStateHandler);
+	chat.onMessageEvent(chatEventHandler);
+	// chat.onAgentTextEvent(text => {});
+	// chat.onAgentRichContentEvent(content => {});
+
+	chat.connect();
+}
 
 function checkCommandsState() {
 	if (commandData.currentState == 'wait_for_response') { runNextStep(); }
@@ -108,3 +114,37 @@ function applyProgressState(state) {
 	if (['finished', 'hold', 'failed'].includes(state)) return hideProgressAnimation();
 	showProgressAnimation();
 }
+
+async function startNewConversation(options) {
+	if (!chat) return console.log('There is no chat connection');
+	await closeCurrentConversation();
+	Object.assign(chat.options, options);
+	// chat.connect();
+}
+
+async function closeCurrentConversation() {
+	if (!chat) return console.log('There is no chat connection');
+	const conversationId = Object.keys(chat.openConvs)[0];	
+	if (conversationId) {
+		const body = {
+			conversationId,
+			conversationField: [
+				{
+					field: "ConversationStateField",
+					conversationState: "CLOSE"
+				}
+			]
+		};
+		console.log(conversationId);
+		try {
+			await chat.socket.updateConversationField(body, {});
+			console.log(`Conversation ${conversationId} closed`);
+		} catch (e) {
+			console.error('Fail to close conversation');
+		}		
+	}
+	return console.log('There are no open conversations');
+}
+
+
+initChatConnection(DEV.KITCHEN);
