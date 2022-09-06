@@ -408,7 +408,7 @@ class ExpectTextEqCmd extends ExpectTextBase {
   
   checkCondition() {
     const expected = this.prepareValue(this.params.text);
-    const found = commandsModel.responses.find(e => this.prepareValue(e.message) == expected);
+    const found = commandsModel.responses.find(e => this.extractText(e) == expected);
     return !!found;
   }
 }
