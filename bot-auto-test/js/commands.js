@@ -36,6 +36,7 @@ class TestScriptModel {
   append(command, view) {
     const id = this.commands.length;
     view.id = id;
+    view.parent.scroll(0, view.parent.scrollHeight);
     this.commands.push({ command, view, id });
   }
 
@@ -61,7 +62,7 @@ class TestScriptModel {
   moveCommandDown(id) {
     if (this.isRunning()) return alert('Test can\'t be updated while is running');
     const index = this.indexById(id);
-    if (index < this.commands.length - 1) return this.moveCommand(index, index + 1);
+    if (index < this.commands.length - 1) return this.moveCommand(index + 1, index);
   }
 
   removeCommand(id) {
@@ -81,13 +82,18 @@ class TestScriptModel {
     };
   }
 
-  clearCommands() {
-    if (this.isRunning()) return alert('Test can\'t be updated while is running');
+  clearCommands(forceConfirm) {
+    if (this.isRunning()) {
+      alert('Test can\'t be updated while is running');
+      return false
+    };
     const msg = "Are you sure you want to clean the test script?";
-    if (confirm(msg)) {
+    if (forceConfirm || confirm(msg)) {
       this.commands.forEach(i => i.view.remove());
       this.reset();
+      return true;
     }
+    return false;``
   }
   
   toJsonString() {
@@ -95,6 +101,7 @@ class TestScriptModel {
   }
   
   fromJsonString(str, parent) {
+    if (!this.clearCommands(true)) return;
     const obj = JSON.parse(str);
     obj.forEach(c => {
       const cls = this.commandClasses.find(rc => rc.commandName == c.name);
@@ -113,9 +120,11 @@ class TestScriptModel {
 class CmdViewBase {
   constructor(parent, name, params) {
     this.container = this.createContainer(parent);
+    this.labelAndParams = this.createLabelAndParams();
     this.label = this.createLabel(name);
     this.paramView = this.createParamView(params);
     this.controls = this.createControls();
+    this.parent = parent;
   }
 
   remove() {
@@ -153,12 +162,17 @@ class CmdViewBase {
     return el;
   }
   createContainer(parent) { return this.createElement('div', parent, 'command-container'); }
+
+  createLabelAndParams() {
+    return this.createElement('div', this.container, 'command-lable-and-params');
+  }
+
   createParamView(params) {
-    const view = this.createElement('div', this.container, 'command-params');
+    const view = this.createElement('div', this.labelAndParams, 'command-params');
     return view;
   }
   createLabel(name) {
-    const lbl = this.createElement('lable', this.container, 'command-label');
+    const lbl = this.createElement('lable', this.labelAndParams, 'command-label');
     lbl.innerText = name;
     return lbl;
   }
@@ -168,17 +182,17 @@ class CmdViewBase {
     const btnUp = this.createElement('div', view, 'cmd-ctrl-btn', 'up');
     const imgUp = this.createElement('img', btnUp, 'cmd-ctrl-img', 'up');
     imgUp.setAttribute('src', 'assets/svg/circle-up.svg');
-    btnUp.onclick = () => { moveCommandUp(this.id); };
+    btnUp.onclick = () => { commandsModel.moveCommandUp(this.id); };
 
     const btnDown = this.createElement('div', view, 'cmd-ctrl-btn', 'down');
     const imgDown = this.createElement('img', btnDown, 'cmd-ctrl-img', 'down');
     imgDown.setAttribute('src', 'assets/svg/circle-down.svg');
-    btnDown.onclick = () => { moveCommandDown(this.id); };
+    btnDown.onclick = () => { commandsModel.moveCommandDown(this.id); };
 
     const btnRemove = this.createElement('div', view, 'cmd-ctrl-btn', 'remove');
     const imgRemove = this.createElement('img', btnRemove, 'cmd-ctrl-img', 'remove');
     imgRemove.setAttribute('src', 'assets/svg/circle-remove.svg');
-    btnRemove.onclick = () => { removeCommand(this.id); };
+    btnRemove.onclick = () => { commandsModel.removeCommand(this.id); };
 
     return view;
   }
@@ -195,7 +209,7 @@ class CmdViewBase {
   }
   createCheckBox(parent, label, checked, updateParamCallback) {
     const name = label.replace(/\s/g, '-');
-    const div = this.createElement('div', parent, 'cell');
+    const div = this.createElement('div', parent);
     
     // Create Checkbox
     const input = this.createElement('input', div);
@@ -204,7 +218,7 @@ class CmdViewBase {
     input.checked = !!checked;
 
     // Create label
-    const lbl = this.createElement('label', div);
+    const lbl = this.createElement('label', div, 'command-param-check-label');
     lbl.setAttribute('for', name);
     lbl.innerText = label;
     

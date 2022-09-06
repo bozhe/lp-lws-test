@@ -32,7 +32,7 @@ function buildSystemButtons() {
   }
 
   createBtn('Run', () => { runCommands(); });
-  createBtn('Clear', () => { clearCommands(); });
+  createBtn('Clear', () => { commandsModel.clearCommands(); });
   createBtn('Load', () => {
     const parent = getScriptContainer();
     const input = document.createElement('input');

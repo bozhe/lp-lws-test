@@ -64,7 +64,7 @@ function checkCommandsState() {
 }
 
 function onCommandState(state) {
-	console.log('On State:', state);
+	console.log('On Stat	e:', state);
 	commandsModel.currentState = state;
 	applyProgressAnimationState(state);
 	if (state === CmdStates.NEXT) return runNextStep();

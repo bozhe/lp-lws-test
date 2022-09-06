@@ -65,13 +65,6 @@ body {
   color: #102840;
 }
 
-.chat-window-content {
-  border-top: 1px #5a93bf solid;
-  overflow: auto;
-  height: calc(100vh - 80px);
-  vertical-align: top;
-  margin-top: 5px;
-}
 
 .msg-container {
   margin-top: 5px;
@@ -168,13 +161,21 @@ body {
   background-color: #ba6666;
 }
 
-.cell.script-window-content {
+.script-content-cell {
   width: 80%;
-  min-height: 100px;
-  overflow: auto;
-  height: calc(100vh - 50px);
+  display: table-cell;
   vertical-align: top;
-  margin-top: 5px;
+}
+
+.script-window-content,
+.chat-window-content {
+  overflow: auto;
+  height: calc(100vh - 80px);
+  margin: 5px;
+  vertical-align: top;
+}
+.chat-window-content {
+  border-top: 1px #5a93bf solid;
 }
 
 .not-active {
@@ -193,6 +194,7 @@ body {
 }
 
 .cmd-ctrl-btn {
+  cursor: pointer;
   padding: 0px 4px;
   display: table-cell;
 }
@@ -358,6 +360,7 @@ body {
   padding-top: 5px;
   margin-top: 5px;
   border-radius: 5px;
+  border: solid 1px #112740;
   display: flex;
   min-height: 30;
 }
@@ -368,22 +371,32 @@ body {
   background-color: rgb(186, 102, 102);
 }
 .command-label {
-  margin-left: 5px;
-  margin-top: 3px;
+  font-family: monospace;
+  font-size: large;
+  color: #112740;
 }
-.command-params {
+
+.command-lable-and-params {
   display: table-cell;
-  padding: 2px;
-  width: 50%;
+  margin: 5px 0px;
+  min-width: 80%;
   padding-left: 10;
   width: fit-content !important;
 }
 
+/* .command-params {} */
+
 textarea.command-param {
-  min-width: 200px;
-  height: 30px;
+  min-width: 100%;
+  height: 40px;
+  border: 1px solid #112740;
+  background-color: #c2d9f0;
 }
 
 .command-controll {
   margin-left: auto;
+}
+
+.command-param-check-label {
+  font-family: monospace;
 }
