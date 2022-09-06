@@ -23,7 +23,7 @@ function chatEventHandler(e) {
 			if (cType == "image") {
 				onBotImage(e.event?.content?.url);
 			} else {
-				console.log(e);
+				// console.log(e);
 				onBotReachContent(e.event.content);
 			}
 		}
@@ -44,7 +44,7 @@ function chatEventHandler(e) {
 }
 
 function chatStateHandler(state) {
-	console.log(state)
+	// console.log(state)
 	if (state == 'PAUSE') checkCommandsState();
 }
 
@@ -64,7 +64,6 @@ function checkCommandsState() {
 }
 
 function onCommandState(state) {
-	console.log('On Stat	e:', state);
 	commandsModel.currentState = state;
 	applyProgressAnimationState(state);
 	if (state === CmdStates.NEXT) return runNextStep();

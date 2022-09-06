@@ -397,6 +397,10 @@ textarea.command-param {
   margin-left: auto;
 }
 
-.command-param-check-label {
+.command-param-check {
+  cursor: pointer;
+}
+
+.command-param-check.lbl {
   font-family: monospace;
 }

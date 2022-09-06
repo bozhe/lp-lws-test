@@ -34,10 +34,10 @@ class TestScriptModel {
   }
 
   append(command, view) {
-    const id = this.commands.length;
-    view.id = id;
+    // const id = this.commands.length;
+    // view.id = id;
     view.parent.scroll(0, view.parent.scrollHeight);
-    this.commands.push({ command, view, id });
+    this.commands.push({ command, view, id: command.id });
   }
 
   moveCommand(targetIndex, destIndex) {
@@ -116,9 +116,21 @@ class TestScriptModel {
   }
 }
 
+class IdGenerator {
+  constructor(base) {
+    this.base = base;
+    this.index = 0;
+  }
+  generate(){
+    this.index += 1;
+    return `${this.base}${this.index}`;
+  }
+}
+
 /** VIEW CLASSES  **/
 class CmdViewBase {
-  constructor(parent, name, params) {
+  constructor(parent, name, params, id) {
+    this.id = id;
     this.container = this.createContainer(parent);
     this.labelAndParams = this.createLabelAndParams();
     this.label = this.createLabel(name);
@@ -157,7 +169,7 @@ class CmdViewBase {
   // Base elements
   createElement(type, parent, ...classes) {
     const el = window.document.createElement(type);
-    if (classes) el.classList.add(...classes);
+    if (classes && classes.length) el.classList.add(...classes);
     parent.appendChild(el);
     return el;
   }
@@ -212,14 +224,15 @@ class CmdViewBase {
     const div = this.createElement('div', parent);
     
     // Create Checkbox
-    const input = this.createElement('input', div);
+    const input = this.createElement('input', div, 'command-param-check', 'box');
     input.setAttribute('type', 'checkbox');
     input.setAttribute('name', name);
     input.checked = !!checked;
+    input.id = `${name}-${this.id}`;
 
     // Create label
-    const lbl = this.createElement('label', div, 'command-param-check-label');
-    lbl.setAttribute('for', name);
+    const lbl = this.createElement('label', div, 'command-param-check', 'lbl');
+    lbl.setAttribute('for', input.id);
     lbl.innerText = label;
     
     // On Update
@@ -242,6 +255,7 @@ class ExpectTextView extends CmdViewBase {
     this.createTextArea(view, params.text, this.defaultUpdater(params, 'text'));
     this.createCheckBox(view, 'Case sensitive', params.caseSensitive, this.defaultUpdater(params, 'caseSensitive'));
     this.createCheckBox(view, 'Ignore apostrophes', params.ignoreApostrophes, this.defaultUpdater(params, 'ignoreApostrophes'));
+    this.createCheckBox(view, 'Ignore line-breaks', params.ignoreLineBreaks, this.defaultUpdater(params, 'ignoreLineBreaks'));
   }
 }
 class ExpectQRView extends CmdViewBase {
@@ -257,7 +271,8 @@ class CmdModelBase {
   static commandName = 'BaseCommand';
   static readableName = 'Base Command';
   static viewClass = CmdViewBase;
-  constructor(params) {//}) {
+  constructor(params) {
+    this.id = idGen.generate();
     this.params = params;
     this.succesState = CmdStates.NEXT;
     this.failedState = CmdStates.FAILED;
@@ -273,13 +288,14 @@ class CmdModelBase {
 
   createView(parent) {
     const viewClass = this.constructor.viewClass;
-    this.view = new viewClass(parent, this.constructor.readableName, this.params);
+    this.view = new viewClass(parent, this.constructor.readableName, this.params, this.id);
     return this.view;
   }
 
   run(chat, callback) {}
 }
 
+// == Send Bases == //
 class UserMessageCmd extends CmdModelBase {
   constructor(params) {
     super(params);
@@ -293,6 +309,7 @@ class UserMessageCmd extends CmdModelBase {
   }
 }
 
+// == Expect Bases == //
 class ExpectCmd extends CmdModelBase {
   checkCondition() { return true; }
   
@@ -302,6 +319,63 @@ class ExpectCmd extends CmdModelBase {
     } else {
       this.onFail(); callback(this.failedState);
     }
+  }
+}
+
+class ExpectTextBase extends ExpectCmd {
+  static viewClass = ExpectTextView;
+  constructor(params) {
+    const defaultParams = {
+      caseSensitive: false,
+      ignoreApostrophes: true,
+      ignoreLineBreaks: false,
+      text: "",
+    };
+    super(Object.assign(defaultParams, params))
+  }
+
+  extractText(response) {
+    if (response.message) return this.prepareValue(response.message);
+    if (response.type === "RichContentEvent") return this.prepareValue(this.richToText(response.content));
+  }
+
+  richToText(content) {
+    if (content && content.type === "vertical") {
+      return content.elements.filter(e => e.type === 'text').map(e => e.text.replace(/\n$/, '')).join('\n');
+    }
+    return null
+  }
+
+  removeApostrophes(value) {
+    // For some reasone the s.replace(/[`"'ʼʻ’]/ig, '') doesn't work
+    const codes = [ 96, 34, 39, 700, 699, 8217 ]; // apostrophes `"'ʼʻ’
+    let res = value;
+    codes.forEach(c => { res = res.replaceAll(String.fromCharCode(c), ''); });
+    return res;
+  }
+
+  prepareValue(value) {
+    if (!value) return '';
+    let res = value.replace(/\<\/?(b|i)\>/ig, ''); // Remove bold, italic tags;
+    if (this.params.ignoreApostrophes) res = this.removeApostrophes(res);
+    if (!this.params.caseSensitive) res = res.toLowerCase();
+    if (this.params.ignoreLineBreaks) res = res.replaceAll('\n', '').replaceAll('\r', '');
+    return res;
+  }
+}
+
+class ExpectQRBaseCmd extends ExpectCmd {
+  static viewClass = ExpectQRView;
+  constructor(params) {
+    const defaultParams = {
+      caseSensitive: false,
+      text: "",
+    };
+    super(Object.assign(defaultParams, params))
+  }
+
+  prepareValue(value) {
+    return this.params.caseSensitive ? value : value.toLowerCase();
   }
 }
 
@@ -327,49 +401,6 @@ class SendCmd extends UserMessageCmd {
   }
 }
 
-// == Expect Bases == //
-class ExpectTextBase extends ExpectCmd {
-  static viewClass = ExpectTextView;
-  constructor(params) {
-    const defaultParams = {
-      caseSensitive: false,
-      ignoreApostrophes: true,
-      text: "",
-    };
-    super(Object.assign(defaultParams, params))
-  }
-
-  removeApostrophes(value) {
-    // For some reasone the s.replace(/[`"'ʼʻ’]/ig, '') doesn't work
-    const codes = [ 96, 34, 39, 700, 699, 8217 ]; // apostrophes `"'ʼʻ’
-    let res = value;
-    codes.forEach(c => { res = res.replaceAll(String.fromCharCode(c), ''); });
-    return res;
-  }
-
-  prepareValue(value) {
-    let res = value.replace(/\<\/?(b|i)\>/ig, ''); // Remove bold, italic tags;
-    if (this.params.ignoreApostrophes) res = this.removeApostrophes(res);
-    if (!this.params.caseSensitive) res = res.toLowerCase();
-    return res;
-  }
-}
-
-class ExpectQRBaseCmd extends ExpectCmd {
-  static viewClass = ExpectQRView;
-  constructor(params) {
-    const defaultParams = {
-      caseSensitive: false,
-      text: "",
-    };
-    super(Object.assign(defaultParams, params))
-  }
-
-  prepareValue(value) {
-    return this.params.caseSensitive ? value : value.toLowerCase();
-  }
-}
-
 // == Expect Implementation == //
 class ExpectTextEqCmd extends ExpectTextBase {
   static commandName = 'ExpectTextEqual';
@@ -388,7 +419,7 @@ class ExpectTextContainsCmd extends ExpectTextBase {
 
   checkCondition() {
     const expected = this.prepareValue(this.params.text); 
-    const found = commandsModel.responses.find(e => this.prepareValue(e.message).indexOf(expected) >= 0);
+    const found = commandsModel.responses.find(e => this.extractText(e).indexOf(expected) >= 0);
     return !!found;
   }
 }
@@ -417,6 +448,7 @@ class ExpectQRContainsCmd extends ExpectQRBaseCmd {
   }
 }
 
+const idGen = new IdGenerator('cmd');
 const commandsModel = new TestScriptModel(
   ResetCmd
   , SendCmd
