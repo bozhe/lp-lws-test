@@ -184,13 +184,19 @@ class CmdViewBase {
     return view;
   }
   createLabel(name) {
-    const lbl = this.createElement('lable', this.labelAndParams, 'command-label');
+    const cnt = this.createElement('div', this.labelAndParams, 'command-label-container');
+    const lbl = this.createElement('label', cnt, 'command-label');
     lbl.innerText = name;
     return lbl;
   }
   createControls() {
     const view = this.createElement('div', this.container, 'command-controll');
 
+    const btnRemove = this.createElement('div', view, 'cmd-ctrl-btn', 'remove');
+    const imgRemove = this.createElement('img', btnRemove, 'cmd-ctrl-img', 'remove');
+    imgRemove.setAttribute('src', 'assets/svg/circle-remove.svg');
+    btnRemove.onclick = () => { commandsModel.removeCommand(this.id); };
+    
     const btnUp = this.createElement('div', view, 'cmd-ctrl-btn', 'up');
     const imgUp = this.createElement('img', btnUp, 'cmd-ctrl-img', 'up');
     imgUp.setAttribute('src', 'assets/svg/circle-up.svg');
@@ -200,12 +206,7 @@ class CmdViewBase {
     const imgDown = this.createElement('img', btnDown, 'cmd-ctrl-img', 'down');
     imgDown.setAttribute('src', 'assets/svg/circle-down.svg');
     btnDown.onclick = () => { commandsModel.moveCommandDown(this.id); };
-
-    const btnRemove = this.createElement('div', view, 'cmd-ctrl-btn', 'remove');
-    const imgRemove = this.createElement('img', btnRemove, 'cmd-ctrl-img', 'remove');
-    imgRemove.setAttribute('src', 'assets/svg/circle-remove.svg');
-    btnRemove.onclick = () => { commandsModel.removeCommand(this.id); };
-
+    
     return view;
   }
 

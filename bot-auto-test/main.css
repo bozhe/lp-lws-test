@@ -195,8 +195,7 @@ body {
 
 .cmd-ctrl-btn {
   cursor: pointer;
-  padding: 0px 4px;
-  display: table-cell;
+  padding: 2px 2px 0px 2px;
 }
 
 .cmd-ctrl-img {
@@ -357,7 +356,7 @@ body {
 /* ========= NEW =========== */
 .command-container {
   background-color: #5a93bf;
-  padding-top: 5px;
+  /* padding-top: 5px; */
   margin-top: 5px;
   border-radius: 5px;
   border: solid 1px #112740;
@@ -370,31 +369,39 @@ body {
 .command-container.failed {
   background-color: rgb(186, 102, 102);
 }
+
+.command-label-container {
+  width: calc(100% - 10px);
+  background:rgba(1, 1, 1, 0.5);
+  padding: 5px;
+  border-radius: inherit;
+  text-align: center;
+}
 .command-label {
   font-family: monospace;
   font-size: large;
-  color: #112740;
+  color: #c3d9f0;
 }
-
 .command-lable-and-params {
   display: table-cell;
-  margin: 5px 0px;
-  min-width: 80%;
-  padding-left: 10;
-  width: fit-content !important;
+  width: -webkit-fill-available;
+  min-width: 90%;
 }
 
-/* .command-params {} */
+.command-params {
+  margin: 5px;
+}
 
 textarea.command-param {
   min-width: 100%;
   height: 40px;
   border: 1px solid #112740;
-  background-color: #c2d9f0;
+  background-color: rgba(255, 255, 255, 0.5);
 }
 
 .command-controll {
   margin-left: auto;
+  border-left: 1px solid #112740;
 }
 
 .command-param-check {
