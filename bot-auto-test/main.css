@@ -178,6 +178,15 @@ body {
   border-top: 1px #5a93bf solid;
 }
 
+.chat-window-content > * ::-moz-selection {
+  background: #c3d9f0;
+  color: #112740;
+}
+.chat-window-content > * ::selection {
+  background: #c3d9f0;
+  color: #112740;
+}
+
 .not-active {
   pointer-events: none;
   cursor: default;
