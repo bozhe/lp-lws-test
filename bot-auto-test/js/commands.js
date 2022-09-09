@@ -95,7 +95,12 @@ class TestScriptModel {
     }
     return false;``
   }
-  
+
+  findHeader() {
+    const value = this.commands.find(i => i.command instanceof HeaderCmd)?.command?.params?.value;
+    return value && `${value}`.toUpperCase();
+  }
+
   toJsonString() {
     return JSON.stringify(this.commands.map(i => i.command.toObject()), null, 2);
   }
@@ -244,6 +249,21 @@ class CmdViewBase {
   }
 }
 class ResetView extends CmdViewBase {}
+
+class HeaderView extends CmdViewBase {
+  createParamView(params) { 
+    const view = super.createParamView(params);
+    const input = this.createElement('input', view, 'command-param-header-input');
+    const onChange = this.defaultUpdater(params, 'value');
+
+    input.setAttribute('type', 'text');
+    input.value = params.value;
+    input.addEventListener('focusout', () => { onChange(input.value) });
+    input.addEventListener('keypress', event => { if (event.code === 'Enter') onChange(input.value); });
+  }
+}
+
+
 class SendView extends CmdViewBase {
   createParamView(params) { 
     const view = super.createParamView(params);
@@ -380,6 +400,22 @@ class ExpectQRBaseCmd extends ExpectCmd {
   }
 }
 
+// == System == //
+class HeaderCmd extends CmdModelBase {
+  static commandName = 'Header';
+  static readableName = 'System: Header';
+  static viewClass = HeaderView;
+  constructor(params) {
+    const defaultParams = { value: '' };
+    super(Object.assign(defaultParams, params));
+    this.succesState = CmdStates.NEXT;
+  }
+  run(chat, callback) {
+    this.onSuccess();
+    callback(this.succesState);
+  }
+}
+
 // == Send == //
 class ResetCmd extends UserMessageCmd {
   static commandName = 'Reset';
@@ -451,7 +487,8 @@ class ExpectQRContainsCmd extends ExpectQRBaseCmd {
 
 const idGen = new IdGenerator('cmd');
 const commandsModel = new TestScriptModel(
-  ResetCmd
+  HeaderCmd
+  , ResetCmd
   , SendCmd
   , ExpectTextEqCmd
   , ExpectTextContainsCmd

@@ -33,7 +33,7 @@ function buildSystemButtons() {
 
   createBtn('Run', () => { runCommands(); });
   createBtn('Clear', () => { commandsModel.clearCommands(); });
-  createBtn('Load', () => {
+  createBtn('Open', () => {
     const parent = getScriptContainer();
     const input = document.createElement('input');
     input.type = 'file';
@@ -49,12 +49,18 @@ function buildSystemButtons() {
     input.click();
   });
   createBtn('Stop', () => { alert('TODO:') });
-  createBtn('Save', () => {
+  
+  const dwnldBtn = createBtn('Download', () => {
     const saveA = window.document.createElement('a');
-    let fileName = 'TestModel' + Date.now() + '.json';
     let data = commandsModel.toJsonString();
+    let fileName = `${(commandsModel.findHeader() || 'TestModel')}_${Date.now()}.json`;
     saveA.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(data)); // ? 
     saveA.setAttribute('download', fileName);
     saveA.click();
   });
+
+  const img = window.document.createElement('img');
+  img.setAttribute('src', 'assets/svg/download.svg');
+  img.classList.add("ctrl-btn-ico");
+  dwnldBtn.appendChild(img);
 }

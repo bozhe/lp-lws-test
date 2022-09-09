@@ -198,6 +198,12 @@ body {
   padding: 2px 2px 0px 2px;
 }
 
+.ctrl-btn-ico {
+  width: 12;
+  position: relative;
+  left: 5;
+}
+
 .cmd-ctrl-img {
   height: 20px;
   filter: invert(10%) sepia(54%) saturate(1526%) hue-rotate(185deg) brightness(95%) contrast(91%);
@@ -410,4 +416,16 @@ textarea.command-param {
 
 .command-param-check.lbl {
   font-family: monospace;
+}
+
+input.command-param-header-input {
+  width: -webkit-fill-available;
+  text-align: center;
+  font-weight: bolder;
+  text-transform: uppercase;
+  background: rgba(0,0,0,0.75);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  border-radius: 5px;
+  font-size: larger;
+  color: rgba(255, 255, 255, 0.75);
 }
