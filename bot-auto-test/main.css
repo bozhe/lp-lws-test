@@ -371,7 +371,7 @@ body {
 /* ========= NEW =========== */
 .command-container {
   background-color: #5a93bf;
-  /* padding-top: 5px; */
+  position: relative;
   margin-top: 5px;
   border-radius: 5px;
   border: solid 1px #112740;
@@ -438,3 +438,28 @@ input.command-param-header-input {
   font-size: larger;
   color: rgba(255, 255, 255, 0.75);
 }
+
+/* DRAG DROP */
+.drop-place {
+  width: 100%;
+  height: 30px;
+  background: #ffeb3bd9;
+  border-radius: 10px;
+  margin-top: 5px;
+}
+
+.drop-place.hidden {
+  display: none;
+}
+
+.command-container.drag {
+  scale: 0.97;
+  position: relative;
+  filter: drop-shadow(2px 4px 6px black);
+  z-index: 9;
+}
+
+.command-container.drag-over {
+  filter: grayscale(1)
+}
+

@@ -41,16 +41,24 @@ class TestScriptModel {
   }
 
   moveCommand(targetIndex, destIndex) {
+    function replaceNodes(a, b) {
+      a.parentNode.insertBefore(a, b);
+      if (+a.dataset.index < +b.dataset.index) a.parentNode.insertBefore(b, a);
+    }
     // Model Items
     const targetItem = this.commands[targetIndex];
     const destItem = this.commands[destIndex];
     // Move HTML Elements
     const targetContainer = targetItem.view.container;
     const destContainer = destItem.view.container;
-    targetContainer.parentNode.insertBefore(targetContainer, destContainer);
+    replaceNodes(targetContainer, destContainer);
+    
     // Move model items
     this.commands.splice(targetIndex, 1);
     this.commands.splice(destIndex, 0, targetItem);
+
+    // Update Indexes
+    this.commands.forEach((c, index) => { c.view.container.dataset.index = index; });
   }
   
   moveCommandUp(id) {
@@ -132,6 +140,113 @@ class IdGenerator {
   }
 }
 
+class VerticalDragAndDropController {
+  constructor(model) {
+    this.pivotY = null;
+    this.dropPlace = null;
+    this.currentDropTarget = null;
+    this.cmdModel = model;
+    this.containerList = [];
+    this.dragIndex = null;
+  }
+
+  createDropPlace(container) {
+    this.dropPlace = window.document.createElement('div');
+    this.dropPlace.classList.add('drop-place', 'hidden');
+    this.dropPlace.dataset.hidden = true;
+    container.parentNode.appendChild(this.dropPlace);
+  }
+
+  removeDropPlace() {
+    this.dropPlace.remove();
+    this.dropPlace = null;
+  }
+
+  resetCurrentDropTarget() {
+    if (this.currentDropTarget) {
+      this.currentDropTarget.classList.remove('drag-over');
+      delete this.currentDropTarget.dataset.dragOver;
+      
+      this.dropPlace.classList.add('hidden');
+      this.dropPlace.dataset.hidden = true;
+
+      this.currentDropTarget = null;
+    }
+  }
+
+  markAsDropTarget(target) {
+    this.resetCurrentDropTarget();
+    this.currentDropTarget = target;
+    target.classList.add('drag-over');
+    target.dataset.dragOver = true;
+    this.dropPlace.parentNode.insertBefore(this.dropPlace, target);
+    if (+target.dataset.index > this.dragIndex) this.dropPlace.parentNode.insertBefore(target, this.dropPlace);
+    this.dropPlace.classList.remove('hidden');
+    delete this.dropPlace.dataset.hidden;
+  }
+
+  onStart(event, container) {
+    event = event || window.event;
+    event.preventDefault();
+    this.createDropPlace(container);
+    this.dragIndex = +container.dataset.index;
+
+    var top = /\d+px/.test(container.style.top) ? parseInt(container.style.top.replace('px', '')) : 0;
+    this.pivotY = top - event.clientY;
+    container.classList.add('drag');
+    container.dataset.draggable = true;
+    
+    document.onmousemove = (e) => { this.onDrag(e || window.event, container ) };
+    document.onmouseup = (e) => { this.onDrop(container) };
+    
+    this.containerList = this.cmdModel.commands.map(c => c.view.container);
+  }
+
+  onDrag(event, container) {
+    event = event || window.event;
+    container.style.top = `${event.clientY + this.pivotY}px`;
+
+    var dragTop = container.getBoundingClientRect().top;
+
+    this.containerList.forEach(target => {
+      if (!target.dataset.draggable) { // Do not update if target already merked as drop target;
+        var targetRect = target.getBoundingClientRect();
+        var overTarget = dragTop < targetRect.bottom && dragTop > targetRect.top; // Check if our drag point is over target rect (Y only)
+        if (overTarget) {
+        // If so, mark target as drop target
+          if (!target.dataset.dragOver) this.markAsDropTarget(target);
+        
+        // Poit out of target:
+        } else if (target.dataset.dragOver) { 
+          var pPlaceRect = this.dropPlace.getBoundingClientRect();
+          var top = Math.min(pPlaceRect.top, targetRect.top);
+          var bottom = Math.max(pPlaceRect.bottom, targetRect.bottom);
+          var overTargetOrPlace = dragTop < bottom && dragTop > top; // Check if point still over the [grop placeholder + target] 
+          // If point out of target and placeholder -> reset target;
+          if (!overTargetOrPlace) this.resetCurrentDropTarget();
+        }
+      }
+    })
+
+    event.preventDefault();
+  }
+
+  onDrop(container) {
+    delete container.dataset.draggable;
+    if (this.currentDropTarget) this.cmdModel.moveCommand(+container.dataset.index, +this.currentDropTarget.dataset.index);
+    this.resetCurrentDropTarget();
+    container.classList.remove('drag');
+    container.style.top = '';
+    document.onmouseup = null;
+    document.onmousemove = null;
+    this.removeDropPlace();
+  }
+
+  register(header, container) {
+    header.onmousedown = (event) => { this.onStart(event, container); }
+  }
+}
+
 /** VIEW CLASSES  **/
 class CmdViewBase {
   constructor(parent, name, params, id) {
@@ -142,6 +257,7 @@ class CmdViewBase {
     this.paramView = this.createParamView(params);
     this.controls = this.createControls();
     this.parent = parent;
+    this.container.dataset.index = commandsModel.commands.length;
   }
 
   remove() {
@@ -189,11 +305,13 @@ class CmdViewBase {
     return view;
   }
   createLabel(name) {
-    const cnt = this.createElement('div', this.labelAndParams, 'command-label-container');
-    const lbl = this.createElement('label', cnt, 'command-label');
+    const header = this.createElement('div', this.labelAndParams, 'command-label-container'); // TODO: Mage Draggable
+    const lbl = this.createElement('label', header, 'command-label');
     lbl.innerText = name;
+    verticalDragAndDropController.register(header, this.container);
     return lbl;
   }
+
   createControls() {
     const view = this.createElement('div', this.container, 'command-controll');
 
@@ -262,7 +380,6 @@ class HeaderView extends CmdViewBase {
     input.addEventListener('keypress', event => { if (event.code === 'Enter') onChange(input.value); });
   }
 }
-
 
 class SendView extends CmdViewBase {
   createParamView(params) { 
@@ -495,3 +612,4 @@ const commandsModel = new TestScriptModel(
   , ExpectQRExistsCmd
   , ExpectQRContainsCmd
 );
+const verticalDragAndDropController = new VerticalDragAndDropController(commandsModel);
