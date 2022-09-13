@@ -16,6 +16,7 @@ function createElementWithClass(className, elementType) {
 
 function createTextMsg(msg, bot) {
   const msgText = createElementWithClass(bot ? "chat-bot-msg-text" : "chat-user-msg-text");
+  if (/ERROR/.test(msg)) msgText.classList.add('error');
   msgText.innerText = msg;
   return msgText
 }

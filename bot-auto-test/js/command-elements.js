@@ -53,7 +53,7 @@ function buildSystemButtons() {
   const dwnldBtn = createBtn('Download', () => {
     const saveA = window.document.createElement('a');
     let data = commandsModel.toJsonString();
-    let fileName = `${(commandsModel.findHeader() || 'TestModel')}_${Date.now()}.json`;
+    let fileName = `${(commandsModel.findHeader() || 'TestModel')}.json`;
     saveA.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(data)); // ? 
     saveA.setAttribute('download', fileName);
     saveA.click();

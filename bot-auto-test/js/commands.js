@@ -7,6 +7,13 @@ const CmdStates = {
   FINISHED: 50,
 };
 
+const TextOperators = {
+  equals: 'Equals',
+  notEquals: 'Not Equals',
+  contains: 'Contains',
+  notContains: 'Not Contains',
+}
+
 class TestScriptModel {
   constructor(...commandClasses) {
     this.commandClasses = commandClasses;
@@ -122,6 +129,11 @@ class TestScriptModel {
         const cmd = new cls(c.params);
         const view = cmd.createView(parent);
         this.append(cmd, view);
+      } else if (deprecatedCommands[c.name]) {
+        const { cls, defaultParams } = deprecatedCommands[c.name]
+        const cmd = new cls(Object.assign(defaultParams, c.params));
+        const view = cmd.createView(parent);
+        this.append(cmd, view);
       } else {
         console.log(`Can not create command ${c.name}`);
       }
@@ -185,7 +197,9 @@ class VerticalDragAndDropController {
     delete this.dropPlace.dataset.hidden;
   }
 
-  onStart(event, container) {
+  onStart(event, point, container) {
+    // point.classList.add("grabbing");
+
     event = event || window.event;
     event.preventDefault();
     this.createDropPlace(container);
@@ -196,13 +210,18 @@ class VerticalDragAndDropController {
     container.classList.add('drag');
     container.dataset.draggable = true;
     
-    document.onmousemove = (e) => { this.onDrag(e || window.event, container ) };
-    document.onmouseup = (e) => { this.onDrop(container) };
+    document.onmousemove = (e) => { this.onDrag(e || window.event, point, container ) };
+    document.onmouseup = (e) => { this.onDrop(point, container) };
     
     this.containerList = this.cmdModel.commands.map(c => c.view.container);
   }
 
-  onDrag(event, container) {
+  onDrag(event, point, container) {
+    // if (!this.isDragMove) {
+    //   this.isDragMove = true;
+    //   document.body.classList.add('hide-cursor');
+    //   point.classList.remove("grabbing");
+    // }
     event = event || window.event;
     container.style.top = `${event.clientY + this.pivotY}px`;
 
@@ -231,7 +250,10 @@ class VerticalDragAndDropController {
     event.preventDefault();
   }
 
-  onDrop(container) {
+  onDrop(point, container) {
+    // document.body.classList.remove('hide-cursor');
+    // point.classList.remove("grabbing");
+    // this.isDragMove = false;
     delete container.dataset.draggable;
     if (this.currentDropTarget) this.cmdModel.moveCommand(+container.dataset.index, +this.currentDropTarget.dataset.index);
     this.resetCurrentDropTarget();
@@ -242,8 +264,8 @@ class VerticalDragAndDropController {
     this.removeDropPlace();
   }
 
-  register(header, container) {
-    header.onmousedown = (event) => { this.onStart(event, container); }
+  register(point, container) {
+    point.onmousedown = (event) => { this.onStart(event, point, container); }
   }
 }
 
@@ -253,9 +275,8 @@ class CmdViewBase {
     this.id = id;
     this.container = this.createContainer(parent);
     this.labelAndParams = this.createLabelAndParams();
-    this.label = this.createLabel(name);
+    this.createHeader(name);
     this.paramView = this.createParamView(params);
-    this.controls = this.createControls();
     this.parent = parent;
     this.container.dataset.index = commandsModel.commands.length;
   }
@@ -294,44 +315,101 @@ class CmdViewBase {
     parent.appendChild(el);
     return el;
   }
-  createContainer(parent) { return this.createElement('div', parent, 'command-container'); }
+
+  createDiv(parent, ...classes) { return this.createElement('div', parent, ...classes); }
+
+  createContainer(parent) { return this.createDiv(parent, 'command-container'); }
+
+  // CMD Header
+  createHeader(name) {
+    const header = this.createDiv(this.labelAndParams, 'command-header');
+    const left = this.createDiv(header, 'command-header-left');
+    const right = this.createDiv(header, 'command-header-right');
+    this.createDragButton(left);
+    this.createLabel(name, header);
+    this.createDotsMenu(right);
+  }
+
+  createDotsMenu(parrent) {
+    let top, content;
+    
+    function showMenu() {
+      delete content.dataset.hidden;
+      content.classList.remove('hidden');
+      top.onclick = hideMenu;
+    }
+
+    function hideMenu() {
+      content.dataset.hidden = true;
+      content.classList.add('hidden');
+      top.onclick = showMenu;
+    }
+
+    const menu = this.createDiv(parrent, 'command-menu'); 
+    
+    top = this.createElement('img', menu, 'command-menu-top');
+    top.setAttribute('src', 'assets/svg/dots.svg');
+    top.onclick = showMenu
+  
+    content = this.createDiv(menu, 'command-menu-content', 'hidden');
+    content.dataset.hidden = true;
+  
+    const removeItem = this.createDiv(content, 'command-menu-item');
+    removeItem.innerText = 'Remove';
+    removeItem.onclick = () => { hideMenu(); commandsModel.removeCommand(this.id); }
+
+    const cloneItem = this.createDiv(content, 'command-menu-item');
+    cloneItem.innerText = 'Clone';
+    cloneItem.onclick = () => { hideMenu(); alert('ToDo'); }
+
+    window.addEventListener('click', function(e) { if (!menu.contains(e.target)) { hideMenu(); } })
+  }
 
   createLabelAndParams() {
-    return this.createElement('div', this.container, 'command-lable-and-params');
+    return this.createDiv(this.container, 'command-lable-and-params');
   }
 
   createParamView(params) {
-    const view = this.createElement('div', this.labelAndParams, 'command-params');
+    const view = this.createDiv(this.labelAndParams, 'command-params');
     return view;
   }
-  createLabel(name) {
-    const header = this.createElement('div', this.labelAndParams, 'command-label-container'); // TODO: Mage Draggable
+
+  createDragButton(parrent) {
+    const img = this.createElement('img', parrent, 'command-drag');
+    img.setAttribute('src', 'assets/svg/draggable.svg');
+    verticalDragAndDropController.register(img, this.container);
+    return img;
+  }
+
+  createLabel(name, header) {
+    // const header = this.createDiv(header, 'command-label-container'); // TODO: Mage Draggable
+    // this.createDragButton(header);
     const lbl = this.createElement('label', header, 'command-label');
     lbl.innerText = name;
-    verticalDragAndDropController.register(header, this.container);
     return lbl;
   }
 
-  createControls() {
-    const view = this.createElement('div', this.container, 'command-controll');
+  // createControls() {
+  //   const view = this.createDiv(this.container, 'command-controll');
 
-    const btnRemove = this.createElement('div', view, 'cmd-ctrl-btn', 'remove');
-    const imgRemove = this.createElement('img', btnRemove, 'cmd-ctrl-img', 'remove');
-    imgRemove.setAttribute('src', 'assets/svg/circle-remove.svg');
-    btnRemove.onclick = () => { commandsModel.removeCommand(this.id); };
+  //   const btnRemove = this.createDiv(view, 'cmd-ctrl-btn', 'remove');
+  //   const imgRemove = this.createElement('img', btnRemove, 'cmd-ctrl-img', 'remove');
+  //   imgRemove.setAttribute('src', 'assets/svg/circle-remove.svg');
+  //   btnRemove.onclick = () => { commandsModel.removeCommand(this.id); };
     
-    const btnUp = this.createElement('div', view, 'cmd-ctrl-btn', 'up');
-    const imgUp = this.createElement('img', btnUp, 'cmd-ctrl-img', 'up');
-    imgUp.setAttribute('src', 'assets/svg/circle-up.svg');
-    btnUp.onclick = () => { commandsModel.moveCommandUp(this.id); };
+  //   /*
+  //   const btnUp = this.createDiv(view, 'cmd-ctrl-btn', 'up');
+  //   const imgUp = this.createElement('img', btnUp, 'cmd-ctrl-img', 'up');
+  //   imgUp.setAttribute('src', 'assets/svg/circle-up.svg');
+  //   btnUp.onclick = () => { commandsModel.moveCommandUp(this.id); };
 
-    const btnDown = this.createElement('div', view, 'cmd-ctrl-btn', 'down');
-    const imgDown = this.createElement('img', btnDown, 'cmd-ctrl-img', 'down');
-    imgDown.setAttribute('src', 'assets/svg/circle-down.svg');
-    btnDown.onclick = () => { commandsModel.moveCommandDown(this.id); };
-    
-    return view;
-  }
+  //   const btnDown = this.createDiv(view, 'cmd-ctrl-btn', 'down');
+  //   const imgDown = this.createElement('img', btnDown, 'cmd-ctrl-img', 'down');
+  //   imgDown.setAttribute('src', 'assets/svg/circle-down.svg');
+  //   btnDown.onclick = () => { commandsModel.moveCommandDown(this.id); };
+  //   */
+  //   return view;
+  // }
 
   // Param Elements
   createTextArea(parent, value, updateParamCallback) {
@@ -345,7 +423,7 @@ class CmdViewBase {
   }
   createCheckBox(parent, label, checked, updateParamCallback) {
     const name = label.replace(/\s/g, '-');
-    const div = this.createElement('div', parent);
+    const div = this.createDiv(parent);
     
     // Create Checkbox
     const input = this.createElement('input', div, 'command-param-check', 'box');
@@ -366,6 +444,7 @@ class CmdViewBase {
     return input
   }
 }
+
 class ResetView extends CmdViewBase {}
 
 class HeaderView extends CmdViewBase {
@@ -380,7 +459,6 @@ class HeaderView extends CmdViewBase {
     input.addEventListener('keypress', event => { if (event.code === 'Enter') onChange(input.value); });
   }
 }
-
 class SendView extends CmdViewBase {
   createParamView(params) { 
     const view = super.createParamView(params);
@@ -401,6 +479,68 @@ class ExpectQRView extends CmdViewBase {
     const view = super.createParamView(params);
     this.createTextArea(view, params.text, this.defaultUpdater(params, 'text'));
     this.createCheckBox(view, 'Case sensitive', params.caseSensitive, this.defaultUpdater(params, 'caseSensitive'));
+  }
+}
+class ExpectTextView1 extends CmdViewBase {
+  createDropDown(parent, items, selected, onChange) {
+    let dropDownTop, dropDownContent;
+    function hideDropDownContent() {
+      dropDownTop.onclick = showDropDownContent;
+      dropDownContent.dataset.hidden = true;
+      dropDownContent.classList.add('hidden');
+    };
+    function showDropDownContent() {
+      dropDownTop.onclick = hideDropDownContent;
+      delete dropDownContent.dataset.hidden;
+      dropDownContent.classList.remove('hidden');
+    };
+    const dropDown = this.createDiv(parent, 'param-dropdown');
+      dropDownTop = this.createDiv(dropDown, 'param-dropdown-top');
+      dropDownContent = this.createDiv(dropDown, 'param-dropdown-content');
+      items.forEach(i => {
+        const dropDownItem = this.createDiv(dropDownContent, 'param-dropdown-item');
+        dropDownItem.innerText = i;
+        dropDownItem.onclick = () => {
+          hideDropDownContent();
+          onChange(i);
+          dropDownTop.innerText = i;
+        }
+      });
+      dropDownTop.innerText = selected || "- Select -";
+      hideDropDownContent();
+      window.addEventListener('click', function(e) { if (!dropDown.contains(e.target)) { hideDropDownContent(); } })
+    return dropDown;
+  }
+
+  createCheckBoxGroup(parent, name, checked, onChange) {
+    const group = this.createDiv(parent, 'param-check-group');
+      const check = this.createElement('input', group, 'command-param-check', 'box')
+      check.setAttribute('type', 'checkbox');
+      check.checked = !!checked;
+      check.id = `${name.replace(/\W/g, '-')}-${this.id}`;
+      check.addEventListener('change', () => { onChange(check.checked); });
+      
+      const label = this.createElement('label', group, 'command-param-check', 'lbl')
+      label.innerText = name;
+      label.setAttribute('for', check.id);
+    return check;
+  }
+
+  createParamView(params) {
+    const operators = Object.keys(TextOperators).map(k => TextOperators[k]);
+    const view = super.createParamView(params);
+      const textLine = this.createDiv(view, 'param-exp-text-line');
+        const dropDown = this.createDropDown(textLine, operators, params.operator, (v) => {params.operator = v;});
+        this.createDiv(textLine, 'h-separator');
+        const textArea = this.createDiv(textLine, 'editable-text');
+        textArea.innerText = params.text;
+        textArea.setAttribute('contenteditable', true);
+        textArea.addEventListener('focusout', () => { params.text = textArea.innerText });
+
+      const boxes = this.createDiv(view, 'param-check-boxes');
+        this.createCheckBoxGroup(boxes, 'Case sensitive', params.caseSensitive, (v) => { params.caseSensitive = v });
+        this.createCheckBoxGroup(boxes, 'Ignore apostrophes', params.ignoreApostrophes, (v) => { params.ignoreApostrophes = v });
+        this.createCheckBoxGroup(boxes, 'Ignore line-breaks', params.ignoreLineBreaks, (v) => { params.ignoreLineBreaks = v });
   }
 }
 
@@ -556,6 +696,71 @@ class SendCmd extends UserMessageCmd {
 }
 
 // == Expect Implementation == //
+class ExpectText extends ExpectTextBase {
+  static commandName = 'ExpectText';
+  static readableName = 'Expect Text';
+  static viewClass = ExpectTextView1;
+  
+  constructor(params) {
+    const defaultParams = {
+      caseSensitive: false,
+      ignoreApostrophes: true,
+      ignoreLineBreaks: false,
+      text: "",
+      operator: TextOperators.contains,
+    };
+    super(Object.assign(defaultParams, params))
+  }
+
+  extractText(response) {
+    if (response.message) return this.prepareValue(response.message);
+    if (response.type === "RichContentEvent") return this.prepareValue(this.richToText(response.content));
+  }
+
+  richToText(content) {
+    if (content && content.type === "vertical") {
+      return content.elements.filter(e => e.type === 'text').map(e => e.text.replace(/\n$/, '')).join('\n');
+    }
+    return null
+  }
+
+  removeApostrophes(value) {
+    // For some reasone the s.replace(/[`"'ʼʻ’]/ig, '') doesn't work
+    const codes = [ 96, 34, 39, 700, 699, 8217 ]; // apostrophes `"'ʼʻ’
+    let res = value;
+    codes.forEach(c => { res = res.replaceAll(String.fromCharCode(c), ''); });
+    return res;
+  }
+
+  prepareValue(value) {
+    if (!value) return '';
+    let res = value.replace(/\<\/?(b|i)\>/ig, ''); // Remove bold, italic tags;
+    if (this.params.ignoreApostrophes) res = this.removeApostrophes(res);
+    if (!this.params.caseSensitive) res = res.toLowerCase();
+    if (this.params.ignoreLineBreaks) res = res.replaceAll('\n', '').replaceAll('\r', '');
+    return res;
+  }
+  
+  contains() {
+    const expected = this.prepareValue(this.params.text); 
+    const found = commandsModel.responses.find(e => this.extractText(e).indexOf(expected) >= 0);
+    return !!found;
+  }
+
+  equals() {
+    const expected = this.prepareValue(this.params.text); 
+    const found = commandsModel.responses.find(e => this.extractText(e) === expected);
+    return !!found;
+  }
+
+  checkCondition() {
+    if (this.params.operator === TextOperators.contains) return this.contains();
+    if (this.params.operator === TextOperators.notContains) return !this.contains();
+    if (this.params.operator === TextOperators.equals) return this.equals();
+    if (this.params.operator === TextOperators.notEquals) return !this.equals();
+  }
+}
+
 class ExpectTextEqCmd extends ExpectTextBase {
   static commandName = 'ExpectTextEqual';
   static readableName = 'Expect Text Equal';
@@ -570,6 +775,7 @@ class ExpectTextEqCmd extends ExpectTextBase {
 class ExpectTextContainsCmd extends ExpectTextBase {
   static commandName = 'ExpectTextContains';
   static readableName = 'Expect Text Contains';
+//  static viewClass = ExpectTextView1;
 
   checkCondition() {
     const expected = this.prepareValue(this.params.text); 
@@ -607,9 +813,15 @@ const commandsModel = new TestScriptModel(
   HeaderCmd
   , ResetCmd
   , SendCmd
-  , ExpectTextEqCmd
-  , ExpectTextContainsCmd
+  , ExpectText
+  // , ExpectTextEqCmd
+  // , ExpectTextContainsCmd
   , ExpectQRExistsCmd
   , ExpectQRContainsCmd
 );
 const verticalDragAndDropController = new VerticalDragAndDropController(commandsModel);
+
+const deprecatedCommands = {
+  'ExpectTextContains': { cls: ExpectText, defaultParams: { operator: TextOperators.contains } },
+  'ExpectTextEqCmd': { cls: ExpectText, defaultParams: { operator: TextOperators.equals } },
+}

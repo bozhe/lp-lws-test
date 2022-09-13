@@ -10,7 +10,12 @@ const DEV = {
 		engagementId: 3058156130, // DEV WEB Kitchen
 		skillId: 3438865930, // DEV WEB Kitchen
 	}, 
-	
+	SMS: {
+		account: 51200453,
+		campaignId: 3058123630,
+		engagementId: 3499935930,
+		skillId: 3499922730,
+	},
 };
 
 function chatEventHandler(e) {
@@ -131,4 +136,11 @@ function applyProgressAnimationState() {
 // 	return console.log('There are no open conversations');
 // }
 
-initChatConnection(DEV.KITCHEN);
+// 
+
+const chnl = new URLSearchParams(window.location.search).get('channel');
+if (chnl === 'SMS' || chnl === 'ABC' || chnl === 'sms' || chnl === 'abc') {
+	initChatConnection(DEV.SMS);
+} else {
+	initChatConnection(DEV.KITCHEN);
+}
