@@ -585,3 +585,39 @@ input.command-param-header-input {
 div.h-separator {
   width: 10px;
 }
+
+.param-one-of-texts-container {
+  width: -webkit-fill-available;
+}
+.param-text-with-button {
+  width: -webkit-fill-available;
+  display: flex;
+  align-items: center;
+}
+
+.editable-text-single {
+  width: -webkit-fill-available;
+  height: 22px;
+  border: 1px solid #112740;
+  background-color: rgba(255, 255, 255, 0.5);
+  padding: 4px;
+  margin-bottom: 2px;
+}
+
+.param-del-button, 
+.param-add-button {
+  width: 22px;
+  height: 22px;
+  margin-right: 4px;
+  cursor: pointer;
+}
+
+.param-button-img {
+  display: inherit;
+  height: 16px;
+  padding: 2px;
+  filter: invert(23%) sepia(6%) saturate(6703%) hue-rotate(169deg) brightness(96%) contrast(93%);
+}
+.param-button-img:hover {
+  filter: none;
+}

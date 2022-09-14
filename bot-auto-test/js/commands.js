@@ -13,6 +13,12 @@ const TextOperators = {
   contains: 'Contains',
   notContains: 'Not Contains',
 }
+const QRSetOperators = {
+  incluedesAnyOf: 'Includes Any Of',
+  incluedesAllOf: 'Includes All Of',
+  notIncluedesAnyOf: 'Not Includes Any of',
+  notIncluedesOneOf: 'Not Includes One of',
+}
 
 class TestScriptModel {
   constructor(...commandClasses) {
@@ -389,28 +395,6 @@ class CmdViewBase {
     return lbl;
   }
 
-  // createControls() {
-  //   const view = this.createDiv(this.container, 'command-controll');
-
-  //   const btnRemove = this.createDiv(view, 'cmd-ctrl-btn', 'remove');
-  //   const imgRemove = this.createElement('img', btnRemove, 'cmd-ctrl-img', 'remove');
-  //   imgRemove.setAttribute('src', 'assets/svg/circle-remove.svg');
-  //   btnRemove.onclick = () => { commandsModel.removeCommand(this.id); };
-    
-  //   /*
-  //   const btnUp = this.createDiv(view, 'cmd-ctrl-btn', 'up');
-  //   const imgUp = this.createElement('img', btnUp, 'cmd-ctrl-img', 'up');
-  //   imgUp.setAttribute('src', 'assets/svg/circle-up.svg');
-  //   btnUp.onclick = () => { commandsModel.moveCommandUp(this.id); };
-
-  //   const btnDown = this.createDiv(view, 'cmd-ctrl-btn', 'down');
-  //   const imgDown = this.createElement('img', btnDown, 'cmd-ctrl-img', 'down');
-  //   imgDown.setAttribute('src', 'assets/svg/circle-down.svg');
-  //   btnDown.onclick = () => { commandsModel.moveCommandDown(this.id); };
-  //   */
-  //   return view;
-  // }
-
   // Param Elements
   createTextArea(parent, value, updateParamCallback) {
     const input = this.createElement('textarea', parent, 'command-param');
@@ -421,6 +405,7 @@ class CmdViewBase {
     input.addEventListener('keypress', event => { if (event.code === 'Enter') onChange(); });
     return input
   }
+  
   createCheckBox(parent, label, checked, updateParamCallback) {
     const name = label.replace(/\s/g, '-');
     const div = this.createDiv(parent);
@@ -465,15 +450,6 @@ class SendView extends CmdViewBase {
     this.createTextArea(view, params.text, this.defaultUpdater(params, 'text'));
   }
 }
-class ExpectTextView extends CmdViewBase {
-  createParamView(params) { 
-    const view = super.createParamView(params);
-    this.createTextArea(view, params.text, this.defaultUpdater(params, 'text'));
-    this.createCheckBox(view, 'Case sensitive', params.caseSensitive, this.defaultUpdater(params, 'caseSensitive'));
-    this.createCheckBox(view, 'Ignore apostrophes', params.ignoreApostrophes, this.defaultUpdater(params, 'ignoreApostrophes'));
-    this.createCheckBox(view, 'Ignore line-breaks', params.ignoreLineBreaks, this.defaultUpdater(params, 'ignoreLineBreaks'));
-  }
-}
 class ExpectQRView extends CmdViewBase {
   createParamView(params) { 
     const view = super.createParamView(params);
@@ -481,7 +457,7 @@ class ExpectQRView extends CmdViewBase {
     this.createCheckBox(view, 'Case sensitive', params.caseSensitive, this.defaultUpdater(params, 'caseSensitive'));
   }
 }
-class ExpectTextView1 extends CmdViewBase {
+class ExpectTextView extends CmdViewBase {
   createDropDown(parent, items, selected, onChange) {
     let dropDownTop, dropDownContent;
     function hideDropDownContent() {
@@ -494,6 +470,7 @@ class ExpectTextView1 extends CmdViewBase {
       delete dropDownContent.dataset.hidden;
       dropDownContent.classList.remove('hidden');
     };
+    
     const dropDown = this.createDiv(parent, 'param-dropdown');
       dropDownTop = this.createDiv(dropDown, 'param-dropdown-top');
       dropDownContent = this.createDiv(dropDown, 'param-dropdown-content');
@@ -530,17 +507,139 @@ class ExpectTextView1 extends CmdViewBase {
     const operators = Object.keys(TextOperators).map(k => TextOperators[k]);
     const view = super.createParamView(params);
       const textLine = this.createDiv(view, 'param-exp-text-line');
-        const dropDown = this.createDropDown(textLine, operators, params.operator, (v) => {params.operator = v;});
+        this.createDropDown(textLine, operators, params.operator, this.defaultUpdater(params, 'operator'));
+        
         this.createDiv(textLine, 'h-separator');
+        
         const textArea = this.createDiv(textLine, 'editable-text');
         textArea.innerText = params.text;
         textArea.setAttribute('contenteditable', true);
         textArea.addEventListener('focusout', () => { params.text = textArea.innerText });
 
       const boxes = this.createDiv(view, 'param-check-boxes');
-        this.createCheckBoxGroup(boxes, 'Case sensitive', params.caseSensitive, (v) => { params.caseSensitive = v });
-        this.createCheckBoxGroup(boxes, 'Ignore apostrophes', params.ignoreApostrophes, (v) => { params.ignoreApostrophes = v });
-        this.createCheckBoxGroup(boxes, 'Ignore line-breaks', params.ignoreLineBreaks, (v) => { params.ignoreLineBreaks = v });
+        this.createCheckBoxGroup(boxes, 'Case sensitive', params.caseSensitive, this.defaultUpdater(params, 'caseSensitive'));
+        this.createCheckBoxGroup(boxes, 'Ignore apostrophes', params.ignoreApostrophes, this.defaultUpdater(params, 'ignoreApostrophes'));
+        this.createCheckBoxGroup(boxes, 'Ignore line-breaks', params.ignoreLineBreaks, this.defaultUpdater(params, 'ignoreLineBreaks'));
+  }
+}
+
+class ExpectQRSetView extends CmdViewBase {
+  createDropDown(parent, items, selected, onChange) {
+    let dropDownTop, dropDownContent;
+    function hideDropDownContent() {
+      dropDownTop.onclick = showDropDownContent;
+      dropDownContent.dataset.hidden = true;
+      dropDownContent.classList.add('hidden');
+    };
+    function showDropDownContent() {
+      dropDownTop.onclick = hideDropDownContent;
+      delete dropDownContent.dataset.hidden;
+      dropDownContent.classList.remove('hidden');
+    };
+    
+    const dropDown = this.createDiv(parent, 'param-dropdown');
+      dropDownTop = this.createDiv(dropDown, 'param-dropdown-top');
+      dropDownContent = this.createDiv(dropDown, 'param-dropdown-content');
+      items.forEach(i => {
+        const dropDownItem = this.createDiv(dropDownContent, 'param-dropdown-item');
+        dropDownItem.innerText = i;
+        dropDownItem.onclick = () => {
+          hideDropDownContent();
+          onChange(i);
+          dropDownTop.innerText = i;
+        }
+      });
+      dropDownTop.innerText = selected || "- Select -";
+      hideDropDownContent();
+      window.addEventListener('click', function(e) { if (!dropDown.contains(e.target)) { hideDropDownContent(); } })
+    return dropDown;
+  }
+
+  createCheckBoxGroup(parent, name, checked, onChange) {
+    const group = this.createDiv(parent, 'param-check-group');
+      const check = this.createElement('input', group, 'command-param-check', 'box')
+      check.setAttribute('type', 'checkbox');
+      check.checked = !!checked;
+      check.id = `${name.replace(/\W/g, '-')}-${this.id}`;
+      check.addEventListener('change', () => { onChange(check.checked); });
+      
+      const label = this.createElement('label', group, 'command-param-check', 'lbl')
+      label.innerText = name;
+      label.setAttribute('for', check.id);
+    return check;
+  }
+
+  actualizeButtonsVisability() {
+    function applyVisability(btn, visible) {
+      if (visible) {
+        btn.classList.remove('hidden');
+      } else { 
+        btn.classList.add('hidden');
+      }
+    }
+
+    if (this.titleInputs.length === 1) {
+      const { addBtn, delBtn } = this.titleInputs[0];
+      applyVisability(addBtn, true);
+      applyVisability(delBtn, false);
+    } else {
+      const lastIndex = this.titleInputs.length-1;
+      this.titleInputs.forEach((item, index) => {
+        applyVisability(item.addBtn, index === lastIndex);
+        applyVisability(item.delBtn, true);
+      });
+    }
+  }
+
+  createTextWithAddButton(parent, text, onChange) {
+    const container = this.createDiv(parent, 'param-text-with-button');
+      const input = this.createDiv(container, 'editable-text-single');
+      input.innerText = text;
+      input.setAttribute('contenteditable', true);
+      input.addEventListener('focusout', onChange);
+      
+      this.createDiv(container, 'h-separator');
+
+      const addBtn = this.createDiv(container, 'param-add-button');
+      addBtn.onclick = () => this.createTextWithAddButton(parent, '', onChange);
+        const addImg = this.createElement('img', addBtn, 'param-button-img', 'add');
+        addImg.setAttribute('src', 'assets/svg/circle-plus.svg');
+
+      const delBtn = this.createDiv(container, 'param-del-button');
+      delBtn.onclick = () => {
+        const index = this.titleInputs.findIndex(i => i.container === container);
+        this.titleInputs.splice(index, 1);
+        container.remove();
+        this.actualizeButtonsVisability();
+        onChange();
+      };
+      const delImg = this.createElement('img', delBtn, 'param-button-img', 'del');
+      delImg.setAttribute('src', 'assets/svg/circle-remove.svg');
+    
+    this.titleInputs.push({ container, input, addBtn, delBtn });
+    this.actualizeButtonsVisability();
+  }
+
+  createParamView(params) {
+    this.titleInputs = [];
+    const onTitleInputChange = () => {
+      params.titles = this.titleInputs.map(t => t.input.innerText)
+      console.log('params.titles', params.titles);
+    }
+
+    const operators = Object.keys(QRSetOperators).map(k => QRSetOperators[k]);
+    const view = super.createParamView(params);
+      const textLine = this.createDiv(view, 'param-exp-text-line');
+        this.createDropDown(textLine, operators, params.operator, this.defaultUpdater(params, 'operator'));
+        
+        this.createDiv(textLine, 'h-separator');
+        
+        const oneOfTextsContainer = this.createDiv(textLine, 'param-one-of-texts-container');
+          params.titles.forEach(t => this.createTextWithAddButton(oneOfTextsContainer, t, onTitleInputChange));
+        
+      const boxes = this.createDiv(view, 'param-check-boxes');
+        this.createCheckBoxGroup(boxes, 'Case sensitive', params.caseSensitive, this.defaultUpdater(params, 'caseSensitive'));
+        this.createCheckBoxGroup(boxes, 'Full title match', params.fullTitleMatch, this.defaultUpdater(params, 'fullTitleMatch'));
   }
 }
 
@@ -600,48 +699,6 @@ class ExpectCmd extends CmdModelBase {
   }
 }
 
-class ExpectTextBase extends ExpectCmd {
-  static viewClass = ExpectTextView;
-  constructor(params) {
-    const defaultParams = {
-      caseSensitive: false,
-      ignoreApostrophes: true,
-      ignoreLineBreaks: false,
-      text: "",
-    };
-    super(Object.assign(defaultParams, params))
-  }
-
-  extractText(response) {
-    if (response.message) return this.prepareValue(response.message);
-    if (response.type === "RichContentEvent") return this.prepareValue(this.richToText(response.content));
-  }
-
-  richToText(content) {
-    if (content && content.type === "vertical") {
-      return content.elements.filter(e => e.type === 'text').map(e => e.text.replace(/\n$/, '')).join('\n');
-    }
-    return null
-  }
-
-  removeApostrophes(value) {
-    // For some reasone the s.replace(/[`"'ʼʻ’]/ig, '') doesn't work
-    const codes = [ 96, 34, 39, 700, 699, 8217 ]; // apostrophes `"'ʼʻ’
-    let res = value;
-    codes.forEach(c => { res = res.replaceAll(String.fromCharCode(c), ''); });
-    return res;
-  }
-
-  prepareValue(value) {
-    if (!value) return '';
-    let res = value.replace(/\<\/?(b|i)\>/ig, ''); // Remove bold, italic tags;
-    if (this.params.ignoreApostrophes) res = this.removeApostrophes(res);
-    if (!this.params.caseSensitive) res = res.toLowerCase();
-    if (this.params.ignoreLineBreaks) res = res.replaceAll('\n', '').replaceAll('\r', '');
-    return res;
-  }
-}
-
 class ExpectQRBaseCmd extends ExpectCmd {
   static viewClass = ExpectQRView;
   constructor(params) {
@@ -696,10 +753,10 @@ class SendCmd extends UserMessageCmd {
 }
 
 // == Expect Implementation == //
-class ExpectText extends ExpectTextBase {
+class ExpectText extends ExpectCmd {
   static commandName = 'ExpectText';
   static readableName = 'Expect Text';
-  static viewClass = ExpectTextView1;
+  static viewClass = ExpectTextView;
   
   constructor(params) {
     const defaultParams = {
@@ -761,26 +818,59 @@ class ExpectText extends ExpectTextBase {
   }
 }
 
-class ExpectTextEqCmd extends ExpectTextBase {
-  static commandName = 'ExpectTextEqual';
-  static readableName = 'Expect Text Equal';
+class ExpectQRSet extends ExpectCmd {
+  static commandName = 'ExpectQRSet';
+  static readableName = 'Expect QR Set';
+  static viewClass = ExpectQRSetView;
   
-  checkCondition() {
-    const expected = this.prepareValue(this.params.text);
-    const found = commandsModel.responses.find(e => this.extractText(e) == expected);
-    return !!found;
+  constructor(params) {
+    const defaultParams = {
+      caseSensitive: false,
+      fullTitleMatch: true,
+      titles: [''],
+      operator: QRSetOperators.incluedesAnyOf,
+    };
+    super(Object.assign(defaultParams, params));
   }
-}
 
-class ExpectTextContainsCmd extends ExpectTextBase {
-  static commandName = 'ExpectTextContains';
-  static readableName = 'Expect Text Contains';
-//  static viewClass = ExpectTextView1;
+  initMatch() {
+    const { fullTitleMatch, caseSensitive } = this.params;
+    let match
+    if (fullTitleMatch && caseSensitive) match = (exp, rcvd) => { return exp === rcvd; };
+    if (fullTitleMatch && !caseSensitive) match = (exp, rcvd) => { return exp.toLowerCase() === rcvd.toLowerCase(); };
+    if (!fullTitleMatch && caseSensitive) match = (exp, rcvd) => { return rcvd.indexOf(exp) >= 0 };
+    if (!fullTitleMatch && !caseSensitive) match = (exp, rcvd) => { return rcvd.toLowerCase().indexOf(exp.toLowerCase) >= 0 };
+    return (exp, rcvd) => match(exp.trim(), rcvd.trim());
+  }
+
+  // Rturns true if received includes at least one of expected
+  includesOneOf(expectedTitles, receivedTitles, match) {
+    return !!(receivedTitles.find(r => !!expectedTitles.find(e => match(e, r))));
+  }
+  
+  // Rturns true if received includes all of expected
+  includesAllOf(expectedTitles, receivedTitles, match) {
+    return !(expectedTitles.find(e => !receivedTitles.find(r => match(e, r))));
+  }
+
+  // Return true if at least one on expected doesn't match any of received
+  notIncludesOneOf(expectedTitles, receivedTitles, match) {
+    return !!(expectedTitles.find(e => !receivedTitles.find(r => match(e, r))));
+  }
+
+  // Returns false if at least one of received matches with at lest one of expected
+  notIncluedesAnyOf(expectedTitles, receivedTitles, match) {
+    return !(receivedTitles.find(r => expectedTitles.find(e => match(e, r))));
+  }
 
   checkCondition() {
-    const expected = this.prepareValue(this.params.text); 
-    const found = commandsModel.responses.find(e => this.extractText(e).indexOf(expected) >= 0);
-    return !!found;
+    const { operator, titles } = this.params;
+    const receivedTitles = (commandsModel.lastResponse()?.quickReplies?.replies || []).map(r => r.title);
+
+    if (operator === QRSetOperators.incluedesAllOf) return this.includesAllOf(titles, receivedTitles, this.initMatch());
+    if (operator === QRSetOperators.incluedesAnyOf) return this.incluedesAnyOf(titles, receivedTitles, this.initMatch());
+    if (operator === QRSetOperators.notIncluedesAnyOf) return this.notIncluedesAnyOf(titles, receivedTitles, this.initMatch());
+    if (operator === QRSetOperators.notIncluedesOneOf) return this.notIncluedesOneOf(titles, receivedTitles, this.initMatch());
   }
 }
 
@@ -814,8 +904,7 @@ const commandsModel = new TestScriptModel(
   , ResetCmd
   , SendCmd
   , ExpectText
-  // , ExpectTextEqCmd
-  // , ExpectTextContainsCmd
+  , ExpectQRSet
   , ExpectQRExistsCmd
   , ExpectQRContainsCmd
 );
