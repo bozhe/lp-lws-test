@@ -14,16 +14,19 @@ const TextOperators = {
   notContains: 'Not Contains',
 }
 const QRSetOperators = {
-  incluedesAnyOf: 'Includes Any Of',
-  incluedesAllOf: 'Includes All Of',
-  notIncluedesAnyOf: 'Not Includes Any of',
-  notIncluedesOneOf: 'Not Includes One of',
+  includesAnyOf: 'Includes Any Of',
+  includesAllOf: 'Includes All Of',
+  notincludesAnyOf: 'Not Includes Any of',
+  notincludesOneOf: 'Not Includes One of',
 }
+
 
 class TestScriptModel {
   constructor(...commandClasses) {
     this.commandClasses = commandClasses;
+    this.progressHanglers = { stop: [], start: [] };
     this.reset();
+
   }
 
   reset () {
@@ -47,8 +50,6 @@ class TestScriptModel {
   }
 
   append(command, view) {
-    // const id = this.commands.length;
-    // view.id = id;
     view.parent.scroll(0, view.parent.scrollHeight);
     this.commands.push({ command, view, id: command.id });
   }
@@ -145,7 +146,56 @@ class TestScriptModel {
       }
     })
   }
+
+  run() {
+    if (!this.isRunning()) {
+      this.commands.forEach(c => c.command.reset() );
+      commandsModel.currentIndex = 0;
+		  this.runNextStep();
+    }
+  }
+
+  runNextStep() {
+    const item = this.commands[this.currentIndex];
+    console.log('Run next step:', this.currentIndex, item?.command);
+	  this.onState(CmdStates.RUN);
+	  if (!item) return this.onState(CmdStates.FINISHED);
+	  this.currentIndex += 1;
+	  item.command.run(window.chat, state => this.onState(state));
+  }
+
+  onState(state) {
+    console.log(`OnState(${state})`);
+    const wasRunning = this.isRunning();
+    commandsModel.currentState = state;
+    
+    if (wasRunning && !this.isRunning()) this.progressHanglers.stop.forEach(h => h());
+    if (!wasRunning && this.isRunning()) this.progressHanglers.start.forEach(h => h());
+
+    if (state === CmdStates.NEXT) return this.runNextStep();
+    if (state === CmdStates.WAIT) this.responses = [];
+  }
+
+  onChatPause() {
+    console.log('OnChatPause:', this.currentState);
+    if (this.currentState === CmdStates.WAIT) this.runNextStep();
+  }
+
+  registerOnProgressStart(handler) {
+    this.progressHanglers.start.push(handler);
+  }
+
+  registerOnProgressStop(handler) {
+    this.progressHanglers.stop.push(handler);
+  }
+
+  onBotResponse(response) {
+    this.responses.push(response);
+  }
 }
+
+// TODO REGISTER: chat? / onProgressStart, onProgressStop, 
+
 
 class IdGenerator {
   constructor(base) {
@@ -157,6 +207,7 @@ class IdGenerator {
     return `${this.base}${this.index}`;
   }
 }
+
 
 class VerticalDragAndDropController {
   constructor(model) {
@@ -274,6 +325,7 @@ class VerticalDragAndDropController {
     point.onmousedown = (event) => { this.onStart(event, point, container); }
   }
 }
+
 
 /** VIEW CLASSES  **/
 class CmdViewBase {
@@ -430,7 +482,11 @@ class CmdViewBase {
   }
 }
 
-class ResetView extends CmdViewBase {}
+
+class ResetView extends CmdViewBase {
+
+}
+
 
 class HeaderView extends CmdViewBase {
   createParamView(params) { 
@@ -444,12 +500,16 @@ class HeaderView extends CmdViewBase {
     input.addEventListener('keypress', event => { if (event.code === 'Enter') onChange(input.value); });
   }
 }
+
+
 class SendView extends CmdViewBase {
   createParamView(params) { 
     const view = super.createParamView(params);
     this.createTextArea(view, params.text, this.defaultUpdater(params, 'text'));
   }
 }
+
+
 class ExpectQRView extends CmdViewBase {
   createParamView(params) { 
     const view = super.createParamView(params);
@@ -457,6 +517,8 @@ class ExpectQRView extends CmdViewBase {
     this.createCheckBox(view, 'Case sensitive', params.caseSensitive, this.defaultUpdater(params, 'caseSensitive'));
   }
 }
+
+
 class ExpectTextView extends CmdViewBase {
   createDropDown(parent, items, selected, onChange) {
     let dropDownTop, dropDownContent;
@@ -522,6 +584,7 @@ class ExpectTextView extends CmdViewBase {
         this.createCheckBoxGroup(boxes, 'Ignore line-breaks', params.ignoreLineBreaks, this.defaultUpdater(params, 'ignoreLineBreaks'));
   }
 }
+
 
 class ExpectQRSetView extends CmdViewBase {
   createDropDown(parent, items, selected, onChange) {
@@ -643,6 +706,7 @@ class ExpectQRSetView extends CmdViewBase {
   }
 }
 
+
 /** MODEL CLASSES **/
 class CmdModelBase {
   static commandName = 'BaseCommand';
@@ -670,7 +734,10 @@ class CmdModelBase {
   }
 
   run(chat, callback) {}
+
+  reset() { this.view.reset() }
 }
+
 
 // == Send Bases == //
 class UserMessageCmd extends CmdModelBase {
@@ -686,6 +753,7 @@ class UserMessageCmd extends CmdModelBase {
   }
 }
 
+
 // == Expect Bases == //
 class ExpectCmd extends CmdModelBase {
   checkCondition() { return true; }
@@ -698,6 +766,7 @@ class ExpectCmd extends CmdModelBase {
     }
   }
 }
+
 
 class ExpectQRBaseCmd extends ExpectCmd {
   static viewClass = ExpectQRView;
@@ -730,6 +799,7 @@ class HeaderCmd extends CmdModelBase {
   }
 }
 
+
 // == Send == //
 class ResetCmd extends UserMessageCmd {
   static commandName = 'Reset';
@@ -741,6 +811,7 @@ class ResetCmd extends UserMessageCmd {
   }
 }
 
+
 class SendCmd extends UserMessageCmd {
   static commandName = 'Send';
   static readableName = 'Send';
@@ -751,6 +822,7 @@ class SendCmd extends UserMessageCmd {
     super(Object.assign(defaultParams, params));
   }
 }
+
 
 // == Expect Implementation == //
 class ExpectText extends ExpectCmd {
@@ -818,6 +890,7 @@ class ExpectText extends ExpectCmd {
   }
 }
 
+
 class ExpectQRSet extends ExpectCmd {
   static commandName = 'ExpectQRSet';
   static readableName = 'Expect QR Set';
@@ -828,7 +901,7 @@ class ExpectQRSet extends ExpectCmd {
       caseSensitive: false,
       fullTitleMatch: true,
       titles: [''],
-      operator: QRSetOperators.incluedesAnyOf,
+      operator: QRSetOperators.includesAnyOf,
     };
     super(Object.assign(defaultParams, params));
   }
@@ -844,7 +917,7 @@ class ExpectQRSet extends ExpectCmd {
   }
 
   // Rturns true if received includes at least one of expected
-  includesOneOf(expectedTitles, receivedTitles, match) {
+  includesAnyOf(expectedTitles, receivedTitles, match) {
     return !!(receivedTitles.find(r => !!expectedTitles.find(e => match(e, r))));
   }
   
@@ -859,7 +932,7 @@ class ExpectQRSet extends ExpectCmd {
   }
 
   // Returns false if at least one of received matches with at lest one of expected
-  notIncluedesAnyOf(expectedTitles, receivedTitles, match) {
+  notincludesAnyOf(expectedTitles, receivedTitles, match) {
     return !(receivedTitles.find(r => expectedTitles.find(e => match(e, r))));
   }
 
@@ -867,12 +940,13 @@ class ExpectQRSet extends ExpectCmd {
     const { operator, titles } = this.params;
     const receivedTitles = (commandsModel.lastResponse()?.quickReplies?.replies || []).map(r => r.title);
 
-    if (operator === QRSetOperators.incluedesAllOf) return this.includesAllOf(titles, receivedTitles, this.initMatch());
-    if (operator === QRSetOperators.incluedesAnyOf) return this.incluedesAnyOf(titles, receivedTitles, this.initMatch());
-    if (operator === QRSetOperators.notIncluedesAnyOf) return this.notIncluedesAnyOf(titles, receivedTitles, this.initMatch());
-    if (operator === QRSetOperators.notIncluedesOneOf) return this.notIncluedesOneOf(titles, receivedTitles, this.initMatch());
+    if (operator === QRSetOperators.includesAllOf) return this.includesAllOf(titles, receivedTitles, this.initMatch());
+    if (operator === QRSetOperators.includesAnyOf) return this.includesAnyOf(titles, receivedTitles, this.initMatch());
+    if (operator === QRSetOperators.notincludesAnyOf) return this.notincludesAnyOf(titles, receivedTitles, this.initMatch());
+    if (operator === QRSetOperators.notincludesOneOf) return this.notincludesOneOf(titles, receivedTitles, this.initMatch());
   }
 }
+
 
 class ExpectQRExistsCmd extends ExpectQRBaseCmd {
   static commandName = 'ExpectQRExists';
@@ -886,6 +960,7 @@ class ExpectQRExistsCmd extends ExpectQRBaseCmd {
   }
 }
 
+
 class ExpectQRContainsCmd extends ExpectQRBaseCmd {
   static commandName = 'ExpectQRContains';
   static readableName = 'Expect QR Contains';
@@ -897,6 +972,7 @@ class ExpectQRContainsCmd extends ExpectQRBaseCmd {
     return !!found;
   }
 }
+
 
 const idGen = new IdGenerator('cmd');
 const commandsModel = new TestScriptModel(

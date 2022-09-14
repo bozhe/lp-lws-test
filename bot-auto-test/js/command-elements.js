@@ -31,7 +31,7 @@ function buildSystemButtons() {
     return btn;
   }
 
-  createBtn('Run', () => { runCommands(); });
+  createBtn('Run', () => { commandsModel.run(); });
   createBtn('Clear', () => { commandsModel.clearCommands(); });
   createBtn('Open', () => {
     const parent = getScriptContainer();

@@ -24,7 +24,7 @@ function chatEventHandler(e) {
 	const cType = e.event?.contentType || e.event?.content?.type;
 	if (eType === "RichContentEvent") {
 		if (role == 'ASSIGNED_AGENT') {
-			commandsModel.responses.push(e.event);
+			commandsModel.onBotResponse(e.event);
 			if (cType == "image") {
 				onBotImage(e.event?.content?.url);
 			} else {
@@ -34,7 +34,7 @@ function chatEventHandler(e) {
 		}
 	} else if (eType == 'ContentEvent') {
 		if (role == 'ASSIGNED_AGENT') {
-			commandsModel.responses.push(e.event);
+			commandsModel.onBotResponse(e.event);
 			if (cType == "text/plain") {
 				onBotTextMessage(e.event.message, (e.event.quickReplies?.replies || []).map(q => q.title));
 			} else if (cType == "carousel") {
@@ -49,8 +49,8 @@ function chatEventHandler(e) {
 }
 
 function chatStateHandler(state) {
-	// console.log(state)
-	if (state == 'PAUSE') checkCommandsState();
+	console.log(state);
+	if (state == 'PAUSE') commandsModel.onChatPause();
 }
 
 function initChatConnection(options) {
@@ -60,49 +60,7 @@ function initChatConnection(options) {
 	chat.onMessageEvent(chatEventHandler);
 	// chat.onAgentTextEvent(text => {});
 	// chat.onAgentRichContentEvent(content => {});
-
 	chat.connect();
-}
-
-function checkCommandsState() {
-	if (commandsModel.currentState == CmdStates.WAIT ) { runNextStep(); }
-}
-
-function onCommandState(state) {
-	commandsModel.currentState = state;
-	applyProgressAnimationState(state);
-	if (state === CmdStates.NEXT) return runNextStep();
-	if (state === CmdStates.WAIT) commandsModel.responses = [];
-}
-
-function runNextStep() {
-	const index = commandsModel.currentIndex;
-	const item = commandsModel.commands[index];
-	commandsModel.currentState = CmdStates.RUN;
-	commandsModel.currentIndex += 1;
-	if (!item) return onCommandState(CmdStates.FINISHED);
-	item.command.run(window.chat, onCommandState);
-}
-
-function runCommands() {
-	if (!commandsModel.isRunning()) {
-		commandsModel.responses = [];
-		commandsModel.commands.forEach(item => item.view.reset());
-		commandsModel.currentIndex = 0;
-		runNextStep()
-	}
-}
-
-function applyProgressAnimationState() {
-	const running = commandsModel.isRunning();
-	const progressAnimation = window.document.getElementById('script-progress-animation');
-	if (!running && !progressAnimation.dataset.hidden) {
-		progressAnimation.dataset.hidden = true;
-		progressAnimation.classList.add('hidden');
-	} else if (running && progressAnimation.dataset.hidden) {
-		delete progressAnimation.dataset.hidden;
-			progressAnimation.classList.remove('hidden');
-	}
 }
 
 // async function startNewConversation(options) {
@@ -137,6 +95,36 @@ function applyProgressAnimationState() {
 // }
 
 // 
+
+class ProgressAnimation {
+	constructor () {
+		this.isRunning = false;
+	}
+
+	getAnimationElement() {
+		if (this.progressAnimation) return this.progressAnimation;
+		this.progressAnimation = window.document.getElementById('script-progress-animation');
+		return this.progressAnimation;
+	}
+
+	start () {
+		if (!this.isRunning) {
+			this.isRunning = true;
+			this.getAnimationElement().classList.remove('hidden');
+		}
+	}
+	
+	stop () {
+		if (this.isRunning) {
+			this.isRunning = false;
+			this.getAnimationElement().classList.add('hidden');
+		}
+	}
+}
+
+const progressAnimation = new ProgressAnimation();
+commandsModel.registerOnProgressStart(() => progressAnimation.start());
+commandsModel.registerOnProgressStop(() => progressAnimation.stop());
 
 const chnl = new URLSearchParams(window.location.search).get('channel');
 if (chnl === 'SMS' || chnl === 'ABC' || chnl === 'sms' || chnl === 'abc') {
