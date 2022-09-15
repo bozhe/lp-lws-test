@@ -18,6 +18,7 @@ function createTextMsg(msg, bot) {
   const msgText = createElementWithClass(bot ? "chat-bot-msg-text" : "chat-user-msg-text");
   if (/ERROR/.test(msg)) msgText.classList.add('error');
   msgText.innerText = msg;
+  msgText.ondblclick = (e) => { e.preventDefault(); copyTextToClipboard(msg, 'Message');};
   return msgText
 }
 
@@ -27,6 +28,7 @@ function createQRsContainer() { return createElementWithClass('chat-bot-msg-qrs'
 function creareQuickReply(title) { 
   const qr = createElementWithClass('quick-reply');
   qr.innerText = title;
+  qr.ondblclick = () => { copyTextToClipboard(title, 'QR Title'); };
   return qr;
 }
 
