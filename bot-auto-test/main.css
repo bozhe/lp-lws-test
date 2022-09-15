@@ -418,6 +418,7 @@ body {
 }
 .command-header-right {
   float: right;
+  display: flex;
 }
 .command-params {
   margin: 5px;
@@ -495,10 +496,12 @@ input.command-param-header-input {
 
 .command-menu-top {
   width: 18px;
-  /* float: left; */
   filter: invert(50%) sepia(33%) saturate(166%) hue-rotate(170deg) brightness(101%) contrast(92%);
   cursor: pointer;
   padding-right: 3px;
+}
+.command-menu-top:hover {
+  filter: none;
 }
 
 .command-menu-content {

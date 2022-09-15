@@ -147,12 +147,16 @@ class TestScriptModel {
     })
   }
 
-  run() {
+  run(index) {
     if (!this.isRunning()) {
-      this.commands.forEach(c => c.command.reset() );
-      commandsModel.currentIndex = 0;
+      commandsModel.currentIndex = index || 0;
+      this.commands.forEach((c, i) => { if (i >= commandsModel.currentIndex) c.command.reset(); } );
 		  this.runNextStep();
     }
+  }
+
+  runById(id) {
+    this.run(this.indexById(id));
   }
 
   runNextStep() {
@@ -222,7 +226,7 @@ class VerticalDragAndDropController {
   createDropPlace(container) {
     this.dropPlace = window.document.createElement('div');
     this.dropPlace.classList.add('drop-place', 'hidden');
-    this.dropPlace.dataset.hidden = true;
+    // this.dropPlace.dataset.hidden = true;
     container.parentNode.appendChild(this.dropPlace);
   }
 
@@ -237,7 +241,7 @@ class VerticalDragAndDropController {
       delete this.currentDropTarget.dataset.dragOver;
       
       this.dropPlace.classList.add('hidden');
-      this.dropPlace.dataset.hidden = true;
+      // this.dropPlace.dataset.hidden = true;
 
       this.currentDropTarget = null;
     }
@@ -251,7 +255,7 @@ class VerticalDragAndDropController {
     this.dropPlace.parentNode.insertBefore(this.dropPlace, target);
     if (+target.dataset.index > this.dragIndex) this.dropPlace.parentNode.insertBefore(target, this.dropPlace);
     this.dropPlace.classList.remove('hidden');
-    delete this.dropPlace.dataset.hidden;
+    // delete this.dropPlace.dataset.hidden;
   }
 
   onStart(event, point, container) {
@@ -392,13 +396,13 @@ class CmdViewBase {
     let top, content;
     
     function showMenu() {
-      delete content.dataset.hidden;
+      // delete content.dataset.hidden;
       content.classList.remove('hidden');
       top.onclick = hideMenu;
     }
 
     function hideMenu() {
-      content.dataset.hidden = true;
+      // content.dataset.hidden = true;
       content.classList.add('hidden');
       top.onclick = showMenu;
     }
@@ -410,7 +414,7 @@ class CmdViewBase {
     top.onclick = showMenu
   
     content = this.createDiv(menu, 'command-menu-content', 'hidden');
-    content.dataset.hidden = true;
+    // content.dataset.hidden = true;
   
     const removeItem = this.createDiv(content, 'command-menu-item');
     removeItem.innerText = 'Remove';
@@ -419,6 +423,10 @@ class CmdViewBase {
     const cloneItem = this.createDiv(content, 'command-menu-item');
     cloneItem.innerText = 'Clone';
     cloneItem.onclick = () => { hideMenu(); alert('ToDo'); }
+
+    const runItem = this.createDiv(content, 'command-menu-item');
+    runItem.innerText = 'Run this';
+    runItem.onclick = () => { hideMenu(); commandsModel.runById(this.id); }
 
     window.addEventListener('click', function(e) { if (!menu.contains(e.target)) { hideMenu(); } })
   }
@@ -524,12 +532,12 @@ class ExpectTextView extends CmdViewBase {
     let dropDownTop, dropDownContent;
     function hideDropDownContent() {
       dropDownTop.onclick = showDropDownContent;
-      dropDownContent.dataset.hidden = true;
+      // dropDownContent.dataset.hidden = true;
       dropDownContent.classList.add('hidden');
     };
     function showDropDownContent() {
       dropDownTop.onclick = hideDropDownContent;
-      delete dropDownContent.dataset.hidden;
+      // delete dropDownContent.dataset.hidden;
       dropDownContent.classList.remove('hidden');
     };
     
@@ -591,12 +599,12 @@ class ExpectQRSetView extends CmdViewBase {
     let dropDownTop, dropDownContent;
     function hideDropDownContent() {
       dropDownTop.onclick = showDropDownContent;
-      dropDownContent.dataset.hidden = true;
+      // dropDownContent.dataset.hidden = true;
       dropDownContent.classList.add('hidden');
     };
     function showDropDownContent() {
       dropDownTop.onclick = hideDropDownContent;
-      delete dropDownContent.dataset.hidden;
+      // delete dropDownContent.dataset.hidden;
       dropDownContent.classList.remove('hidden');
     };
     

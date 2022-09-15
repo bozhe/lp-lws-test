@@ -16,6 +16,12 @@ const DEV = {
 		engagementId: 3499935930,
 		skillId: 3499922730,
 	},
+	ES_WEB: {
+		account: 51200453,
+		campaignId: 3058123630,
+		engagementId: 3910228138,
+		skillId: 3910239138,
+	}
 };
 
 function chatEventHandler(e) {
@@ -126,9 +132,11 @@ const progressAnimation = new ProgressAnimation();
 commandsModel.registerOnProgressStart(() => progressAnimation.start());
 commandsModel.registerOnProgressStop(() => progressAnimation.stop());
 
-const chnl = new URLSearchParams(window.location.search).get('channel');
-if (chnl === 'SMS' || chnl === 'ABC' || chnl === 'sms' || chnl === 'abc') {
+const chnl = (new URLSearchParams(window.location.search).get('channel') || '').toLowerCase();
+if (chnl === 'sms' || chnl === 'abc') {
 	initChatConnection(DEV.SMS);
+} else if (chnl === 'es_web') {
+	initChatConnection(DEV.ES_WEB);
 } else {
 	initChatConnection(DEV.KITCHEN);
 }
