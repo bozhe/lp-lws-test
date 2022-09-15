@@ -4,6 +4,7 @@ const categories = [
     { name: 'DEV Kitchen', section: 'site-gs-dev-kitchen' },
     { name: 'DEV P.Match', section: 'site-gs-dev-price-promise' },
     { name: 'DEV SMS Home', section: 'site-gs-dev-sms-homepage' },
+    { name: 'DEV Spanish WEB', section: 'site-gs-dev-spanish' },
   ]},
   { name: 'Stage', items: [
     { name: 'STG Home Page', section: 'site-gs-stg-homepage' },
