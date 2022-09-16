@@ -330,6 +330,16 @@ class VerticalDragAndDropController {
   }
 }
 
+function editableDivPasteHandler(event) {
+  // Filter out everything except simple text and allowable HTML elements
+  const regex = /<(?!(\/\s*)?(b|i|em|strong|u)[>,\s])([^>])*>/g;
+  // Get user's pasted data
+  const data = (event.clipboardData.getData('text/html') || event.clipboardData.getData('text/plain')).replace(regex, '');
+  // Insert the filtered content
+  document.execCommand('insertHTML', false, data);
+  // Prevent the standard paste behavior
+  event.preventDefault();
+}
 
 /** VIEW CLASSES  **/
 class CmdViewBase {
@@ -585,6 +595,7 @@ class ExpectTextView extends CmdViewBase {
         textArea.innerText = params.text;
         textArea.setAttribute('contenteditable', true);
         textArea.addEventListener('focusout', () => { params.text = textArea.innerText });
+        textArea.addEventListener('paste', editableDivPasteHandler);
 
       const boxes = this.createDiv(view, 'param-check-boxes');
         this.createCheckBoxGroup(boxes, 'Case sensitive', params.caseSensitive, this.defaultUpdater(params, 'caseSensitive'));
@@ -668,6 +679,7 @@ class ExpectQRSetView extends CmdViewBase {
       input.innerText = text;
       input.setAttribute('contenteditable', true);
       input.addEventListener('focusout', onChange);
+      input.addEventListener('paste', editableDivPasteHandler);
       
       this.createDiv(container, 'h-separator');
 
