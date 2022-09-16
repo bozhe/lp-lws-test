@@ -86,6 +86,9 @@ body {
 .chat-bot-msg-text.error {
   background-color: #ff000078 !important;
 }
+.chat-bot-msg-text.debgug {
+  background-color: #ffee0078 !important;
+}
 
 .chat-user-msg-text {
   padding: 5px 15px;
