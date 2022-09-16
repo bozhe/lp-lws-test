@@ -18,7 +18,7 @@ function createTextMsg(msg, bot) {
   const msgText = createElementWithClass(bot ? "chat-bot-msg-text" : "chat-user-msg-text");
   if (/ERROR/.test(msg)) msgText.classList.add('error');
   if (/^DBG:/.test(msg)) msgText.classList.add('debug');
-  msgText.innerText = msg;
+  msgText.innerHTML = msg;
   msgText.ondblclick = (e) => { e.preventDefault(); copyTextToClipboard(msg, 'Message');};
   return msgText
 }
