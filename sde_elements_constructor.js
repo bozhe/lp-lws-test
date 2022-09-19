@@ -160,41 +160,39 @@ function readAndConvertSDEs() {
 
 function sendSDEs() {
   const { valid, product, store, user } = readAndConvertSDEs();
+  console.log({ valid, product, store, user });
   if (valid) {
+    const personal = {
+      firstname: user.firstName,
+      // lastname:"-",
+      contacts:[
+        {
+          // phone:"-",
+          email: user.email
+        }
+      ],
+      // company:"-"
+    };
+    const ctmrinfo = {
+      socialId: store.zip,
+      imei: product.onmiItemId, 
+      ctype: user.ctype,
+    };
+    const products = [{
+      product: {
+        name: product.title,
+        sku: `${product.itemNumber}-${product.vendorNumber}-${product.itemModel}`,  //PRODUCT SKU (PRODUCT_ID-VENDOR_NUMBER-MODEL_ID)
+        price: product.price
+      }
+    }]
+    console.log('personal', personal);
+    console.log('ctmrinfo', ctmrinfo);
+    console.log('products', products);
     lpTag.sdes.reset();
     lpTag.sdes.init();
-    lpTag.sdes.send({
-      type: 'personal',
-      personal: {
-        firstname: user.firstName,
-        // lastname:"-",
-        contacts:[
-          {
-            // phone:"-",
-            email: user.email
-          }
-        ],
-        // company:"-"
-      }
-    });
-    lpTag.sdes.send({
-      type: 'ctmrinfo', // MANDATORY
-      info: {
-        socialId: store.zip,
-        imei: product.onmiItemId, 
-        ctype: user.ctype,
-      }
-    });
-    lpTag.sdes.send({
-      type: 'prodView', // MANDATORY
-      products: [{
-        product: {
-          name: product.title,
-          sku: `${product.itemNumber}-${product.vendorNumber}-${product.itemModel}`,  //PRODUCT SKU (PRODUCT_ID-VENDOR_NUMBER-MODEL_ID)
-          price: product.price
-        }
-      }]
-    });
+    lpTag.sdes.send({ type: 'personal', personal });
+    lpTag.sdes.send({ type: 'ctmrinfo', info: ctmrinfo });
+    lpTag.sdes.send({ type: 'prodView', products });
     showSaved();
   }
 }
