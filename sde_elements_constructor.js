@@ -21,6 +21,7 @@ const attributes = [
   { id: 'storeId', title: 'Store ID', validator: validators.numberOrEmpty },
   { id: 'storeName', title: 'Store Name', validator: validators.any },
   { id: 'ctype', title: 'Cust. Type', validator: validators.ctype },
+  { id: 'firstName', title: 'First Name', validator: validators.any },
   { id: 'email', title: 'E-mail', validator: validators.any },
 ];
 
@@ -152,6 +153,7 @@ function readAndConvertSDEs() {
     user: {
       ctype: getInputValue('ctype'),
       email: getInputValue('email'),
+      firstName: getInputValue('firstName'),
     }
   }
 }
@@ -164,7 +166,7 @@ function sendSDEs() {
     lpTag.sdes.send({
       type: 'personal',
       personal: {
-        // firstname:"-",
+        firstname: user.firstName,
         // lastname:"-",
         contacts:[
           {
@@ -206,6 +208,7 @@ function copySDEsCode(textarea) {
     `  lpTag.sdes.send({`,
     `    type: 'personal',`,
     `    personal: {`,
+    `    firstname: ${user.firstName}`,
     `      contacts: [{`,
     `        email: "${user.email}", `,
     `      }], `,
