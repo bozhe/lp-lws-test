@@ -107,7 +107,7 @@ function createSDEInputTable() {
   table.classList.add('table');
   parent.appendChild(table);
 
-  attributes.forEach(a => createSDEInputRow(a, table));
+  attributes.forEach(a => { console.log(`create input for ${a.title}(${a.id});`); createSDEInputRow(a, table); });
   createSDEButtons(table);
 }
 
