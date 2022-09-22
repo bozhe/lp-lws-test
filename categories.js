@@ -11,6 +11,9 @@ const categories = [
     { name: 'STG Kitchen', section: 'site-gs-stg-kitchen' },
     { name: 'STG P.Match', section: 'site-gs-stg-price-promise' },
     { name: 'STG SMS Home', section: 'site-gs-stg-sms-homepage' },
+    { name: '-- TEST --', section: 'site-gs-stg-homepage-immediately' },
+
+    
   ]},
   { name: 'Pro Loyalty', items: [
     { name: 'STG PRO 1', section: 'site-gs-stg-pro-loyalty-1' },
