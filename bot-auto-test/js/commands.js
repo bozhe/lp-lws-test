@@ -498,6 +498,20 @@ class CmdViewBase {
 
     return input
   }
+  
+  createCheckBoxGroup(parent, name, checked, onChange) {
+    const group = this.createDiv(parent, 'param-check-group');
+      const check = this.createElement('input', group, 'command-param-check', 'box')
+      check.setAttribute('type', 'checkbox');
+      check.checked = !!checked;
+      check.id = `${name.replace(/\W/g, '-')}-${this.id}`;
+      check.addEventListener('change', () => { onChange(check.checked); });
+      
+      const label = this.createElement('label', group, 'command-param-check', 'lbl')
+      label.innerText = name;
+      label.setAttribute('for', check.id);
+    return check;
+  }
 }
 
 
@@ -524,6 +538,33 @@ class SendView extends CmdViewBase {
   createParamView(params) { 
     const view = super.createParamView(params);
     this.createTextArea(view, params.text, this.defaultUpdater(params, 'text'));
+  }
+}
+
+class PressRichButtonByMaskAndIndexView extends CmdViewBase {
+  createText(parent, text, onChange) {
+    const container = this.createDiv(parent, 'param-text-with-button');
+      const input = this.createDiv(container, 'editable-text-single');
+      input.innerText = text;
+      input.setAttribute('contenteditable', true);
+      input.addEventListener('focusout', () => onChange(input.innerText));
+      input.addEventListener('paste', editableDivPasteHandler);
+  }
+
+  createParamView(params) { 
+    const view = super.createParamView(params);
+    const maskTextLine = this.createDiv(view, 'param-exp-text-line');
+      const maskLbl = this.createElement('div', maskTextLine, 'tbd'); // Lable
+      maskLbl.innerText = 'Mask:';
+      this.createDiv(maskTextLine, 'h-separator');
+      this.createText(maskTextLine, params.mask, this.defaultUpdater(params, 'mask'));
+    const indexTextLine = this.createDiv(view, 'param-exp-text-line');
+      const indexLbl = this.createElement('div', indexTextLine, 'tbd'); // Lable
+      indexLbl.innerText = 'Index:';
+      this.createDiv(indexTextLine, 'h-separator');
+      this.createText(indexTextLine, params.index, this.defaultUpdater(params, 'index'));
+    const boxes = this.createDiv(view, 'param-check-boxes');
+      this.createCheckBoxGroup(boxes, 'Case sensitive', params.caseSensitive, this.defaultUpdater(params, 'caseSensitive'));
   }
 }
 
@@ -637,19 +678,6 @@ class ExpectQRSetView extends CmdViewBase {
     return dropDown;
   }
 
-  createCheckBoxGroup(parent, name, checked, onChange) {
-    const group = this.createDiv(parent, 'param-check-group');
-      const check = this.createElement('input', group, 'command-param-check', 'box')
-      check.setAttribute('type', 'checkbox');
-      check.checked = !!checked;
-      check.id = `${name.replace(/\W/g, '-')}-${this.id}`;
-      check.addEventListener('change', () => { onChange(check.checked); });
-      
-      const label = this.createElement('label', group, 'command-param-check', 'lbl')
-      label.innerText = name;
-      label.setAttribute('for', check.id);
-    return check;
-  }
 
   actualizeButtonsVisability() {
     function applyVisability(btn, visible) {
@@ -843,6 +871,53 @@ class SendCmd extends UserMessageCmd {
   }
 }
 
+class PressRichButtonByMaskAndIndex extends UserMessageCmd {
+  static commandName = 'PressRichButtonByMaskAndIndex';
+  static readableName = 'Press R.Button By Mask';
+  static viewClass = PressRichButtonByMaskAndIndexView;
+
+  constructor(params) {
+    const defaultParams = { mask: ".*", index: 0, caseSensitive: false };
+    super(Object.assign(defaultParams, params));
+    this.failedState = CmdStates.FAILED;
+  }
+
+  findRichButtonsByTitleMask(mask, caseSensitive) {
+    console.log('findRichButtonsByTitleMask', mask, caseSensitive);
+    const { responses } = commandsModel;
+    const regex = new RegExp(mask, caseSensitive ? '' : 'i');
+    console.log(regex);
+    const result = [];
+    function deepFind(element) {
+      if (element.type === 'button' && regex.test(element.title)) return result.push(element);
+      if (element.elements) element.elements.forEach(deepFind);
+    }
+    responses.filter(r => r.type == "RichContentEvent" && r.content?.elements)
+      .forEach(r => r.content.elements.forEach(deepFind));
+    console.log(result);
+    return result;
+  }
+
+  run(chat, callback) {
+    const buttons = this.findRichButtonsByTitleMask(this.params.mask, this.params.caseSensitive);
+    const targetButton = buttons && buttons[this.params.index];
+    const { actions, metadata } = targetButton && targetButton.click || {};
+    if (!actions) {
+      this.onFail(); callback(this.failedState);
+    } else {
+      let textSent = false;
+      actions.forEach(a => {
+        if (a.type == "publishText") {
+          textSent = true;
+          return chat.sendMessage(a.text, metadata);
+        }
+        if (a.type == "link") return window.open(a.uri, '_blank');//.focus();
+      })
+      this.onSuccess(); callback(textSent ? CmdStates.WAIT : CmdStates.NEXT);
+    }
+  }
+}
+
 
 // == Expect Implementation == //
 class ExpectText extends ExpectCmd {
@@ -999,6 +1074,7 @@ const commandsModel = new TestScriptModel(
   HeaderCmd
   , ResetCmd
   , SendCmd
+  , PressRichButtonByMaskAndIndex
   , ExpectText
   , ExpectQRSet
   , ExpectQRExistsCmd
