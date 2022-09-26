@@ -5,15 +5,14 @@ const categories = [
     { name: 'DEV P.Match', section: 'site-gs-dev-price-promise' },
     { name: 'DEV SMS Home', section: 'site-gs-dev-sms-homepage' },
     { name: 'DEV Spanish WEB', section: 'site-gs-dev-spanish' },
+    { name: 'DEV Spanish ABC/SMS', section: 'abc-gs-dev-spanish' },
   ]},
   { name: 'Stage', items: [
     { name: 'STG Home Page', section: 'site-gs-stg-homepage' },
     { name: 'STG Kitchen', section: 'site-gs-stg-kitchen' },
     { name: 'STG P.Match', section: 'site-gs-stg-price-promise' },
     { name: 'STG SMS Home', section: 'site-gs-stg-sms-homepage' },
-    { name: '-- TEST --', section: 'site-gs-stg-homepage-immediately' },
-
-    
+  
   ]},
   { name: 'Pro Loyalty', items: [
     { name: 'STG PRO 1', section: 'site-gs-stg-pro-loyalty-1' },
