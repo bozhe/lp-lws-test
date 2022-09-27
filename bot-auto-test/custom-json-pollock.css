@@ -1,0 +1,144 @@
+.lp-json-pollock-element-image.lpc_card__image {
+  border: 1px solid #004990!important;
+  margin-bottom: 2px;
+}
+
+.lp-json-pollock-element-button.lpc_card__button {
+border: 2px solid #004990!important;
+  color: #fff!important;
+  background-color: #004990!important;
+  margin: 3px 0px 3px 0px!important;
+}
+
+.lp-json-pollock-element-button.lpc_card__button:hover {
+border: 2px solid #004990!important;
+  color: #004990!important;
+  background-color: #fff!important;
+}
+
+.lp-json-pollock-element-text.lpc_card__text {
+border: 1px #004990 solid!important;
+}
+
+.chips-wrapper .chips-row {
+text-align: -webkit-left!important;
+  display: block!important;
+  height: auto!important;
+}
+
+.chips-wrapper .chips-row>.chips-item {
+border: 2px solid #004990!important;
+  border-radius: 16px;
+  color: #fff!important;
+  background-color: #004990!important;
+  font-size: 1em!important;
+  font-weight: bold!important;
+  outline: 0!important;
+  margin: 0 6px 6px 0!important;
+}
+
+.chips-wrapper .chips-row>.chips-item:hover {
+color: #004990!important;
+  background-color: #fff!important;
+}
+
+.lp-json-pollock-layout.lp-json-pollock-layout-vertical.lpc_rich_content_grouped.lpc_card.lpc_card_vertical {
+border: none!important;
+}
+
+.lp-json-pollock-element-button button {
+color: #fff!important;
+  font-weight: bold!important;
+  outline: 0!important;
+  background-color: #004990!important;
+}
+
+.lp-json-pollock-element-button button:hover {
+color: #004990!important;
+  background-color: #ffffff!important;
+}
+
+.lp_location_bottom {
+border-top: 1px solid #d6d6d6!important;
+}
+
+.lp_chat_line_wrapper .lp_time .lp_sender,.lp_title .lp_top-text {
+max-width: none!important;
+}
+
+.lpc_typing-indication {
+visibility: hidden!important;
+}
+
+.lpc_typing-indication:after {
+content: "We are typing...";
+  visibility: visible!important;
+  width: 100px;
+  float: left;
+}
+a:focus,button:focus,div:focus,textarea:focus {
+outline: 0!important;
+}
+
+.lp_cancel_button {
+border: 2px solid #004990!important;
+  color: #ffffff!important;
+  background-color: #004990!important;
+  border-radius: 25px!important;
+  font-weight: bold!important;
+}
+
+.lp_confirm_button,.lp_submit_button {
+border: 2px solid #004990!important;
+  color: #ffffff!important;
+  background-color: #004990!important;
+  border-radius: 25px!important;
+  font-weight: bold!important;
+}
+
+.lp_confirm_button:hover,.lp_submit_button:hover {
+border: 2px solid #004990!important;
+  background-color: #ffffff!important;
+  color: #004990!important;
+}
+
+.lp_cancel_button:hover {
+border: 2px solid #004990!important;
+  color: #004990!important;
+  background-color: #ffffff!important;
+}
+
+.lp-json-pollock.lp-json-pollock-single-element {
+border: 0px!important;
+}
+
+.lp_chat_line_wrapper.lp_grouped.lp_agent .lp_new_chat_line {
+color: #ffffff!important;
+  border: 1px solid #004990!important;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  background-color: #ffffff!important;
+}
+
+.lp_chat_line_wrapper.lp_grouped.lp_visitor .lp_new_chat_line {
+color: #004990 !important;
+  border: 1px solid #575757!important;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  background-color: #575757!important;
+}
+
+.lpc_desktop.lpc_message-area__timestamp_agent {
+vertical-align: top !important;
+  padding: 3px 3px 3px 43px !important;
+}
+
+.lpc_desktop.lpc_message-area__avatar_agent {
+width: 32px !important;
+  height: 32px !important;
+  border-radius: 16px !important;
+}
+
+.lp_chat_line_wrapper .lp_time_bottom {
+display: none !important;
+}

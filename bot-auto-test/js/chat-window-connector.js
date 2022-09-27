@@ -9,7 +9,13 @@ const DEV = {
 		campaignId: 3058123630,
 		engagementId: 3058156130, // DEV WEB Kitchen
 		skillId: 3438865930, // DEV WEB Kitchen
-	}, 
+	},
+	HOMEPAGE: {
+		account: 51200453,
+		campaignId: 3058123630,
+		engagementId: 3058153730, // DEV WEB HOMEPAGE
+		skillId: 3438865830, // DEV WEB HOMEPAGE
+	},
 	SMS: {
 		account: 51200453,
 		campaignId: 3058123630,
@@ -138,5 +144,5 @@ if (chnl === 'sms' || chnl === 'abc') {
 } else if (chnl === 'es_web') {
 	initChatConnection(DEV.ES_WEB);
 } else {
-	initChatConnection(DEV.KITCHEN);
+	initChatConnection(DEV.HOMEPAGE);
 }
