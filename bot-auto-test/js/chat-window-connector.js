@@ -143,6 +143,8 @@ if (chnl === 'sms' || chnl === 'abc') {
 	initChatConnection(DEV.SMS);
 } else if (chnl === 'es_web') {
 	initChatConnection(DEV.ES_WEB);
+} else if (chnl === 'web_kitchen') {
+	initChatConnection(DEV.KITCHEN);
 } else {
 	initChatConnection(DEV.HOMEPAGE);
 }
