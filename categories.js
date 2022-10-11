@@ -15,8 +15,8 @@ const categories = [
   
   ]},
   { name: 'Pro Loyalty', items: [
-    { name: 'STG PRO 1', section: 'site-gs-stg-pro-loyalty-1' },
-    { name: 'STG PRO 2', section: 'site-gs-stg-pro-loyalty-2' },  
+    { name: 'STG PRO Regular', section: 'site-gs-stg-pro-loyalty-regular' },
+    { name: 'STG PRO Cart-Checkout', section: 'site-gs-stg-pro-loyalty-checkout' },  
     { name: 'STG ABC PRO', section: 'abc-gs-stg-pro-loyalty' },
     { name: 'STG SMS PRO', section: 'sms-gs-stg-pro-loyalty' },
   ]},
