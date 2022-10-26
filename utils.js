@@ -17,10 +17,10 @@ function setChatWindowSize(w, h) {
 function initChatWindowSliders() {
   const wSlider = window.document.getElementById('chat-window-width-slider');
   const hSlider = window.document.getElementById('chat-window-height-slider');
-  let chatWindow = window.document.querySelector(".lp_maximized");
+  let chatWindow;
   function updateAttribute(attr, innerAttr, min) { 
     return function(ev) {
-      if (!chatWindow) chatWindow = window.document.querySelector(".lp_maximized");
+      chatWindow = window.document.querySelector(".lp_maximized");
       if (!chatWindow) return;
       const value = (min + (window[innerAttr] - min) * ev.target.value / 100) * 0.93;
       chatWindow.style[attr] = value;
