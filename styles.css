@@ -214,3 +214,23 @@ body {
   filter: invert(0%) sepia(11%) saturate(7455%) hue-rotate(332deg) brightness(90%) contrast(96%);
   cursor: pointer;
 }
+
+/* ======== chat window size ========= */
+input[type=range][orient=vertical]
+{
+    writing-mode: bt-lr; /* IE */
+    -webkit-appearance: slider-vertical; /* Chromium */
+    width: 8px;
+    height: 175px;
+    padding: 0 5px;
+}
+/* .v-slider-label {
+  position: relative;
+  right: 18;
+  top: 18;
+} */
+.slidecontainer {
+  position: absolute;
+  left: 10;
+  top: 10;
+}

@@ -13,3 +13,19 @@ function setChatWindowSize(w, h) {
     console.log(`W: ${elem.style.width}, H: ${elem.style.height}`);
   }
 }
+
+function initChatWindowSliders() {
+  const wSlider = window.document.getElementById('chat-window-width-slider');
+  const hSlider = window.document.getElementById('chat-window-height-slider');
+  let chatWindow = window.document.querySelector(".lp_maximized");
+  function updateAttribute(attr, innerAttr, min) { 
+    return function(ev) {
+      if (!chatWindow) chatWindow = window.document.querySelector(".lp_maximized");
+      if (!chatWindow) return;
+      const value = (min + (window[innerAttr] - min) * ev.target.value / 100) * 0.93;
+      chatWindow.style[attr] = value;
+    }
+  }
+  wSlider.addEventListener('input', updateAttribute('width', 'innerWidth', 340));
+  hSlider.addEventListener('input', updateAttribute('height', 'innerHeight', 580));
+}
