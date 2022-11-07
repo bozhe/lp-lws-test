@@ -177,6 +177,8 @@ function sendSDEs() {
       socialId: store.zip,
       imei: product.onmiItemId, 
       ctype: user.ctype,
+      companySize: store.id,
+      userName: store.title,
     };
     const products = [{
       product: {
@@ -218,6 +220,8 @@ function copySDEsCode(textarea) {
     `      socialId: "${store.zip}",`,
     `      imei: "${product.onmiItemId}", `,
     `      ctype: "${user.ctype}", `,
+    `      companySize: "${store.id}", `,
+    `      userName: "${store.title}", `,
     `    }`,
     `  });`,
     `  lpTag.sdes.send({`,
